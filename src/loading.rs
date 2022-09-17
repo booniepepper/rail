@@ -4,8 +4,8 @@ use crate::tokens;
 use crate::{rail_lib_path, rail_machine};
 
 pub struct SourceConventions<'a> {
-    lib_exts: &'a [&'a str],
-    lib_list_exts: &'a [&'a str],
+    pub lib_exts: &'a [&'a str],
+    pub lib_list_exts: &'a [&'a str],
 }
 
 pub const RAIL_CONVENTIONS: SourceConventions = SourceConventions {
