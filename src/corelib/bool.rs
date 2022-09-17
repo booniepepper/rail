@@ -20,12 +20,12 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let (b1, quote) = quote.pop_bool("and");
             quote.push_bool(b1 && b2)
         }),
-        equality("==", Equality::Equal),
-        equality("!=", Equality::NotEqual),
-        binary_numeric_pred(">", |a, b| a > b, |a, b| a > b),
-        binary_numeric_pred("<", |a, b| a < b, |a, b| a < b),
-        binary_numeric_pred(">=", |a, b| a >= b, |a, b| a >= b),
-        binary_numeric_pred("<=", |a, b| a <= b, |a, b| a <= b),
+        equality("eq?", Equality::Equal),
+        equality("neq?", Equality::NotEqual),
+        binary_numeric_pred("gt?", |a, b| b > a, |a, b| b > a),
+        binary_numeric_pred("lt?", |a, b| b < a, |a, b| b < a),
+        binary_numeric_pred("gte?", |a, b| b >= a, |a, b| b >= a),
+        binary_numeric_pred("lte?", |a, b| b <= a, |a, b| b <= a),
         RailDef::on_state("any", &[Quote, Quote], &[Quote], |state| {
             let (predicate, state) = state.pop_quote("any");
             let (sequence, state) = state.pop_quote("any");

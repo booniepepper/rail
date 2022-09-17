@@ -29,8 +29,8 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 ns = ns.push_i64(n % 10);
                 n = n / 10;
             }
-            return quote.push_quote(ns.reverse())
-        })
+            return quote.push_quote(ns.reverse());
+        }),
     ]
 }
 
