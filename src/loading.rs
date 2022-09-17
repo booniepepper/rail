@@ -3,6 +3,30 @@ use std::{fmt::Debug, fs, path::Path};
 use crate::tokens;
 use crate::{rail_lib_path, rail_machine};
 
+pub struct SourceConventions<'a> {
+    lib_exts: &'a [&'a str],
+    lib_list_exts: &'a [&'a str],
+}
+
+pub const RAIL_CONVENTIONS: SourceConventions = SourceConventions {
+    lib_exts: &[".rail"],
+    lib_list_exts: &[".txt"],
+};
+
+impl SourceConventions<'_> {
+    pub fn is_lib(&self, filename: &str) -> bool {
+        self.has_ext(filename, self.lib_exts)
+    }
+
+    pub fn is_lib_list(&self, filename: &str) -> bool {
+        self.has_ext(filename, self.lib_list_exts)
+    }
+
+    fn has_ext(&self, filename: &str, exts: &[&str]) -> bool {
+        exts.iter().any(|ext| filename.ends_with(ext))
+    }
+}
+
 pub fn from_rail_source(source: String) -> Vec<String> {
     source.split('\n').flat_map(tokens::tokenize).collect()
 }
@@ -17,11 +41,11 @@ where
     from_rail_source(source)
 }
 
-pub fn from_stdlib() -> Vec<String> {
+pub fn from_rail_stdlib() -> Vec<String> {
     let path = rail_lib_path().join("rail-src/stdlib/all.txt");
 
     if path.is_file() {
-        return from_lib_list(path);
+        return from_lib_list(path, &RAIL_CONVENTIONS);
     }
 
     let message = format!(
@@ -33,7 +57,7 @@ pub fn from_stdlib() -> Vec<String> {
     vec![]
 }
 
-pub fn from_lib_list<P>(path: P) -> Vec<String>
+pub fn from_lib_list<P>(path: P, conventions: &SourceConventions) -> Vec<String>
 where
     P: AsRef<Path> + Debug,
 {
@@ -47,10 +71,10 @@ where
         .filter(|s| !s.is_empty() && !s.starts_with('#'))
         .map(|filepath| base_dir.join(filepath).to_string_lossy().to_string())
         .map(|file| {
-            if file.ends_with(".rail") {
+            if conventions.is_lib(&file) {
                 Some(from_rail_source_file(file))
-            } else if file.ends_with(".txt") {
-                Some(from_lib_list(file))
+            } else if conventions.is_lib_list(&file) {
+                Some(from_lib_list(file, conventions))
             } else {
                 None
             }

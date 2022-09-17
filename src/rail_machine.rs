@@ -32,12 +32,12 @@ impl RailState {
         let state = if skip_stdlib {
             state
         } else {
-            let tokens = loading::from_stdlib();
+            let tokens = loading::from_rail_stdlib();
             state.run_tokens(tokens)
         };
 
         if let Some(lib_list) = lib_list {
-            let tokens = loading::from_lib_list(&lib_list);
+            let tokens = loading::from_lib_list(&lib_list, &loading::RAIL_CONVENTIONS);
             state.run_tokens(tokens)
         } else {
             state
