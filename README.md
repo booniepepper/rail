@@ -13,7 +13,7 @@ versions is guaranteed.
 
 ```
 $ railsh
-rail 0.21.1
+rail 0.22.0
 
 > 1 1 + print
 2
