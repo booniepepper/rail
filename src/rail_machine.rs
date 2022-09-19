@@ -1,10 +1,17 @@
 use colored::Colorize;
 
 use crate::corelib::corelib_dictionary;
-use crate::loading;
 use im::{HashMap, Vector};
 use std::fmt::Display;
 use std::sync::Arc;
+
+#[derive(Clone)]
+pub struct RunConventions<'a> {
+    pub exe_name: &'a str,
+    pub exe_version: &'a str,
+    pub warn_prefix: &'a str,
+    pub fatal_prefix: &'a str,
+}
 
 #[derive(Clone)]
 pub struct RailState {
@@ -13,35 +20,23 @@ pub struct RailState {
     pub definitions: Dictionary,
     // TODO: Save parents at time of definition and at runtime
     pub context: Context,
+    pub conventions: &'static RunConventions<'static>,
 }
 
 impl RailState {
-    pub fn new(context: Context) -> RailState {
+    pub fn new(context: Context, conventions: &'static RunConventions) -> RailState {
         let stack = Stack::default();
         let definitions = corelib_dictionary();
         RailState {
             stack,
             definitions,
             context,
+            conventions,
         }
     }
 
-    pub fn new_with_libs(skip_stdlib: bool, lib_list: Option<String>) -> RailState {
-        let state = RailState::default();
-
-        let state = if skip_stdlib {
-            state
-        } else {
-            let tokens = loading::from_rail_stdlib();
-            state.run_tokens(tokens)
-        };
-
-        if let Some(lib_list) = lib_list {
-            let tokens = loading::from_lib_list(&lib_list, &loading::RAIL_CONVENTIONS);
-            state.run_tokens(tokens)
-        } else {
-            state
-        }
+    pub fn new_main(conventions: &'static RunConventions) -> RailState {
+        RailState::new(Context::Main, conventions)
     }
 
     pub fn in_main(&self) -> bool {
@@ -57,6 +52,7 @@ impl RailState {
             stack: Stack::default(),
             definitions: self.definitions.clone(),
             context: Context::None,
+            conventions: self.conventions,
         }
     }
 
@@ -107,7 +103,7 @@ impl RailState {
             // TODO: Use a logging library? Log levels? Exit in a strict mode?
             // TODO: Have/get details on filename/source, line number, character number
             let term = term.replace('\n', "\\n");
-            derail_for_unknown_command(&term);
+            derail_for_unknown_command(&term, self.conventions);
         }
     }
 
@@ -117,7 +113,7 @@ impl RailState {
                 let mut cmd = self
                     .get_def(&name)
                     .or_else(|| local_state.get_def(&name))
-                    .unwrap_or_else(|| derail_for_unknown_command(&name));
+                    .unwrap_or_else(|| derail_for_unknown_command(&name, self.conventions));
                 cmd.act(self.clone())
             }
             value => self.clone().push(value),
@@ -141,6 +137,7 @@ impl RailState {
             stack: update(self.stack),
             definitions: self.definitions,
             context: self.context,
+            conventions: self.conventions,
         }
     }
 
@@ -153,6 +150,7 @@ impl RailState {
             stack,
             definitions,
             context: self.context,
+            conventions: self.conventions,
         }
     }
 
@@ -161,6 +159,7 @@ impl RailState {
             stack,
             definitions: self.definitions,
             context: self.context,
+            conventions: self.conventions,
         }
     }
 
@@ -169,6 +168,7 @@ impl RailState {
             stack: self.stack,
             definitions,
             context: self.context,
+            conventions: self.conventions,
         }
     }
 
@@ -177,16 +177,19 @@ impl RailState {
             stack: self.stack,
             definitions: self.definitions,
             context,
+            conventions: self.conventions,
         }
     }
 
     pub fn deeper(self) -> RailState {
+        let conventions = self.conventions;
         RailState {
             stack: Stack::default(),
             definitions: self.definitions.clone(),
             context: Context::Quotation {
                 parent_state: Box::new(self),
             },
+            conventions,
         }
     }
 
@@ -336,12 +339,6 @@ impl RailState {
     pub fn dequeue(self) -> (RailVal, Self) {
         let (value, stack) = self.stack.clone().dequeue();
         (value, self.replace_stack(stack))
-    }
-}
-
-impl Default for RailState {
-    fn default() -> Self {
-        Self::new(Context::Main)
     }
 }
 
@@ -721,13 +718,16 @@ impl RailDef<'_> {
     pub fn act(&mut self, state: RailState) -> RailState {
         if state.stack.len() < self.consumes.len() {
             // TODO: At some point will want source context here like line/column number.
-            log_warn(format!(
-                "Underflow for \"{}\" (takes: {}, gives: {}). State: {}",
-                self.name,
-                self.display_consumes(),
-                self.display_produces(),
-                state.stack
-            ));
+            log_warn(
+                state.conventions,
+                format!(
+                    "Underflow for \"{}\" (takes: {}, gives: {}). State: {}",
+                    self.name,
+                    self.display_consumes(),
+                    self.display_produces(),
+                    state.stack
+                ),
+            );
             return state;
         }
 
@@ -759,8 +759,8 @@ impl RailDef<'_> {
 // The following are all handling for errors, warnings, and panics.
 // TODO: Update places these are referenced to return Result.
 
-pub fn derail_for_unknown_command(name: &str) -> ! {
-    log_derail(format!("Unknown command '{}'", name));
+pub fn derail_for_unknown_command(name: &str, conv: &RunConventions) -> ! {
+    log_fatal(conv, format!("Unknown command '{}'", name));
     std::process::exit(1)
 }
 
@@ -771,12 +771,12 @@ pub fn type_panic_msg(context: &str, expected: &str, actual: RailVal) -> String 
     )
 }
 
-pub fn log_warn(thing: impl Display) {
-    let msg = format!("WARN: {}", thing).dimmed().red();
+pub fn log_warn(conv: &RunConventions, thing: impl Display) {
+    let msg = format!("{}: {}", conv.warn_prefix, thing).dimmed().red();
     eprintln!("{}", msg);
 }
 
-pub fn log_derail(thing: impl Display) {
-    let msg = format!("Derailed: {}", thing).dimmed().red();
+pub fn log_fatal(conv: &RunConventions, thing: impl Display) {
+    let msg = format!("{}: {}", conv.fatal_prefix, thing).dimmed().red();
     eprintln!("{}", msg);
 }

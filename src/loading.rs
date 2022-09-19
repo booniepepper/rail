@@ -1,5 +1,6 @@
 use std::{fmt::Debug, fs, path::Path};
 
+use crate::rail_machine::{RailState, RunConventions};
 use crate::tokens;
 use crate::{rail_lib_path, rail_machine};
 
@@ -8,7 +9,7 @@ pub struct SourceConventions<'a> {
     pub lib_list_exts: &'a [&'a str],
 }
 
-pub const RAIL_CONVENTIONS: SourceConventions = SourceConventions {
+pub const RAIL_SOURCE_CONVENTIONS: SourceConventions = SourceConventions {
     lib_exts: &[".rail"],
     lib_list_exts: &[".txt"],
 };
@@ -27,32 +28,54 @@ impl SourceConventions<'_> {
     }
 }
 
-pub fn from_rail_source(source: String) -> Vec<String> {
+pub fn initial_rail_state(
+    skip_stdlib: bool,
+    lib_list: Option<String>,
+    rc: &'static RunConventions,
+) -> RailState {
+    let state = RailState::new_main(rc);
+
+    let state = if skip_stdlib {
+        state
+    } else {
+        let tokens = from_rail_stdlib(rc);
+        state.run_tokens(tokens)
+    };
+
+    if let Some(lib_list) = lib_list {
+        let tokens = from_lib_list(&lib_list, &RAIL_SOURCE_CONVENTIONS);
+        state.run_tokens(tokens)
+    } else {
+        state
+    }
+}
+
+pub fn get_source_as_tokens(source: String) -> Vec<String> {
     source.split('\n').flat_map(tokens::tokenize).collect()
 }
 
-pub fn from_rail_source_file<P>(path: P) -> Vec<String>
+pub fn get_source_file_as_tokens<P>(path: P) -> Vec<String>
 where
     P: AsRef<Path> + Debug,
 {
     let error_msg = format!("Error reading file {:?}", path);
     let source = fs::read_to_string(path).expect(&error_msg);
 
-    from_rail_source(source)
+    get_source_as_tokens(source)
 }
 
-pub fn from_rail_stdlib() -> Vec<String> {
+pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<String> {
     let path = rail_lib_path().join("rail-src/stdlib/all.txt");
 
     if path.is_file() {
-        return from_lib_list(path, &RAIL_CONVENTIONS);
+        return from_lib_list(path, &RAIL_SOURCE_CONVENTIONS);
     }
 
     let message = format!(
         "Unable to load stdlib. Wanted to find it at {:?}\nDo you need to run 'railup bootstrap'?",
         path
     );
-    rail_machine::log_warn(message);
+    rail_machine::log_warn(rc, message);
 
     vec![]
 }
@@ -72,7 +95,7 @@ where
         .map(|filepath| base_dir.join(filepath).to_string_lossy().to_string())
         .map(|file| {
             if conventions.is_lib(&file) {
-                Some(from_rail_source_file(file))
+                Some(get_source_file_as_tokens(file))
             } else if conventions.is_lib_list(&file) {
                 Some(from_lib_list(file, conventions))
             } else {

@@ -1,5 +1,5 @@
-use crate::rail_machine::{self, RailState};
-use crate::{loading, RAIL_VERSION};
+use crate::loading;
+use crate::rail_machine::{self, RailState, RunConventions};
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -8,10 +8,11 @@ pub struct RailPrompt {
     is_tty: bool,
     editor: Editor<()>,
     terms: Vec<String>,
+    conventions: &'static RunConventions<'static>,
 }
 
 impl RailPrompt {
-    pub fn new() -> RailPrompt {
+    pub fn new(conventions: &'static RunConventions) -> RailPrompt {
         let mut editor = Editor::<()>::new().expect("Unable to boot editor");
         let is_tty = editor.dimensions().is_some();
         let terms = vec![];
@@ -19,11 +20,15 @@ impl RailPrompt {
             is_tty,
             editor,
             terms,
+            conventions,
         }
     }
 
     pub fn run(self, state: RailState) {
-        let name_and_version = format!("rail {}", RAIL_VERSION);
+        let name_and_version = format!(
+            "{} {}",
+            self.conventions.exe_name, self.conventions.exe_version
+        );
         eprintln!("{}", name_and_version.dimmed().red());
 
         let end_state = self.fold(state, |state, term| state.run_term(term));
@@ -32,12 +37,6 @@ impl RailPrompt {
             let end_state_msg = format!("State dump: {}", end_state.stack);
             eprintln!("{}", end_state_msg.dimmed().red());
         }
-    }
-}
-
-impl Default for RailPrompt {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -58,14 +57,14 @@ impl Iterator for RailPrompt {
             if let Err(e) = input {
                 // ^D and ^C are not error cases.
                 if let ReadlineError::Eof = e {
-                    rail_machine::log_derail("End of input");
+                    rail_machine::log_fatal(self.conventions, "End of input");
                     return None;
                 } else if let ReadlineError::Interrupted = e {
-                    rail_machine::log_derail("Process interrupt");
+                    rail_machine::log_fatal(self.conventions, "Process interrupt");
                     return None;
                 }
 
-                rail_machine::log_derail(e);
+                rail_machine::log_fatal(self.conventions, e);
                 std::process::exit(1);
             }
 
@@ -73,7 +72,7 @@ impl Iterator for RailPrompt {
 
             self.editor.add_history_entry(&input);
 
-            self.terms = loading::from_rail_source(input);
+            self.terms = loading::get_source_as_tokens(input);
             self.terms.reverse();
         }
 

@@ -85,10 +85,13 @@ where
             (F64(a), I64(b)) => quote.push_bool(f64_op(a, b as f64)),
             (F64(a), F64(b)) => quote.push_bool(f64_op(a, b)),
             (a, b) => {
-                rail_machine::log_warn(format!(
-                    "Can only perform {} on numeric values but got {} and {}",
-                    name, a, b
-                ));
+                rail_machine::log_warn(
+                    quote.conventions,
+                    format!(
+                        "Can only perform {} on numeric values but got {} and {}",
+                        name, a, b
+                    ),
+                );
                 quote.push(a).push(b)
             }
         }

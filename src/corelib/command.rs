@@ -9,13 +9,17 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         RailDef::on_state("doin!", &[Quote, QuoteOrCommand], &[Unknown], doin()),
         RailDef::on_jailed_state("doin", &[Quote, QuoteOrCommand], &[Unknown], doin()),
         RailDef::on_state("def!", &[Quote, QuoteOrCommand], &[], |state| {
+            let conventions = state.conventions;
             state.update_stack_and_defs(|quote, definitions| {
                 let mut definitions = definitions;
                 let (name, quote) = quote.pop();
                 let name = if let Some(name) = get_command_name(&name) {
                     name
                 } else {
-                    rail_machine::log_warn(format!("{} is not a string or command", name));
+                    rail_machine::log_warn(
+                        conventions,
+                        format!("{} is not a string or command", name),
+                    );
                     return (quote, definitions);
                 };
                 let (commands, quote) = quote.pop_quote("def");
@@ -29,7 +33,10 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let name = if let Some(name) = get_command_name(&name) {
                 name
             } else {
-                rail_machine::log_warn(format!("{} is not a string or command", name));
+                rail_machine::log_warn(
+                    state.conventions,
+                    format!("{} is not a string or command", name),
+                );
                 return state;
             };
             let is_def = state.definitions.contains_key(&name);
@@ -49,7 +56,10 @@ fn do_it() -> impl Fn(RailState) -> RailState {
                 action.clone().act(state.clone())
             }
             _ => {
-                rail_machine::log_warn(format!("{} is not a quote or command", command));
+                rail_machine::log_warn(
+                    state.conventions,
+                    format!("{} is not a quote or command", command),
+                );
                 state
             }
         }
@@ -59,7 +69,12 @@ fn do_it() -> impl Fn(RailState) -> RailState {
 fn doin() -> impl Fn(RailState) -> RailState {
     |state| {
         let (commands, state) = state.pop_quote("doin");
-        let (targets, state) = state.pop_quote("doin");
+        let (target, state) = state.pop();
+
+        let targets = match target {
+            RailVal::Quote(q) => q,
+            scalar => state.child().push(scalar),
+        };
 
         let substate = state.child().replace_stack(targets.stack);
         let substate = commands.run_in_state(substate);

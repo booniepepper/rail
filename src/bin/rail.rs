@@ -1,18 +1,26 @@
 use clap::Parser;
-use rail_lang::rail_machine::RailState;
-use rail_lang::{loading, RAIL_VERSION};
+use rail_lang::{loading, RunConventions, RAIL_FATAL_PREFIX, RAIL_VERSION, RAIL_WARNING_PREFIX};
+
+const EXE_NAME: &str = "rail";
+
+const CONVENTIONS: RunConventions = RunConventions {
+    exe_name: EXE_NAME,
+    exe_version: RAIL_VERSION,
+    warn_prefix: RAIL_WARNING_PREFIX,
+    fatal_prefix: RAIL_FATAL_PREFIX,
+};
 
 pub fn main() {
     let args = RailEvaluator::parse();
 
-    let state = RailState::new_with_libs(args.no_stdlib, args.lib_list);
+    let state = loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS);
 
-    let tokens = loading::from_rail_source(args.rail_code.join(" "));
+    let tokens = loading::get_source_as_tokens(args.rail_code.join(" "));
     state.run_tokens(tokens);
 }
 
 #[derive(Parser)]
-#[clap(name = "rail", version = RAIL_VERSION)]
+#[clap(name = EXE_NAME, version = RAIL_VERSION)]
 /// Rail Evaluator. A straightforward programming language
 struct RailEvaluator {
     #[clap(long)]
