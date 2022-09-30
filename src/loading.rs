@@ -1,5 +1,6 @@
 use std::{fmt::Debug, fs, path::Path};
 
+use crate::corelib::rail_builtin_dictionary;
 use crate::rail_machine::{RailState, RunConventions};
 use crate::tokens;
 use crate::{rail_lib_path, rail_machine};
@@ -33,7 +34,8 @@ pub fn initial_rail_state(
     lib_list: Option<String>,
     rc: &'static RunConventions,
 ) -> RailState {
-    let state = RailState::new_main(rc);
+    let definitions = rail_builtin_dictionary();
+    let state = RailState::new_main(definitions, rc);
 
     let state = if skip_stdlib {
         state

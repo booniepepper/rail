@@ -1,6 +1,5 @@
 use colored::Colorize;
 
-use crate::corelib::corelib_dictionary;
 use im::{HashMap, Vector};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -24,9 +23,12 @@ pub struct RailState {
 }
 
 impl RailState {
-    pub fn new(context: Context, conventions: &'static RunConventions) -> RailState {
+    pub fn new(
+        context: Context,
+        definitions: Dictionary,
+        conventions: &'static RunConventions,
+    ) -> RailState {
         let stack = Stack::default();
-        let definitions = corelib_dictionary();
         RailState {
             stack,
             definitions,
@@ -35,8 +37,8 @@ impl RailState {
         }
     }
 
-    pub fn new_main(conventions: &'static RunConventions) -> RailState {
-        RailState::new(Context::Main, conventions)
+    pub fn new_main(definitions: Dictionary, conventions: &'static RunConventions) -> RailState {
+        RailState::new(Context::Main, definitions, conventions)
     }
 
     pub fn in_main(&self) -> bool {
@@ -626,8 +628,9 @@ pub type Dictionary = HashMap<String, RailDef<'static>>;
 
 pub fn dictionary_of<Entries>(entries: Entries) -> Dictionary
 where
-    Entries: IntoIterator<Item = (String, RailDef<'static>)>,
+    Entries: IntoIterator<Item = RailDef<'static>>,
 {
+    let entries = entries.into_iter().map(|def| (def.name.clone(), def));
     HashMap::from_iter(entries)
 }
 
