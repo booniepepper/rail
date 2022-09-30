@@ -1,4 +1,4 @@
-use crate::rail_machine::{self, RailDef, RailType, RailVal, Stack};
+use crate::rail_machine::{self, RailDef, RailState, RailType, RailVal, Stack};
 
 use RailType::*;
 
@@ -120,10 +120,8 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             state.push_quote(results)
         }),
         RailDef::on_state("each!", &[Quote, Quote], &[], |state| {
-            let (command, quote) = state.stack.clone().pop_quote("each");
-            let (sequence, quote) = quote.pop_quote("each");
-
-            let state = state.replace_stack(quote);
+            let (command, state) = state.pop_quote("each");
+            let (sequence, state) = state.pop_quote("each");
 
             sequence
                 .stack
@@ -135,10 +133,8 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 })
         }),
         RailDef::on_jailed_state("each", &[Quote, Quote], &[], |state| {
-            let (command, quote) = state.stack.clone().pop_quote("each");
-            let (sequence, quote) = quote.pop_quote("each");
-
-            let state = state.replace_stack(quote);
+            let (command, state) = state.pop_quote("each");
+            let (sequence, state) = pop_as_quote_from(state);
 
             let definitions = state.definitions.clone();
 
@@ -184,4 +180,15 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             state.push_quote(c)
         }),
     ]
+}
+
+fn pop_as_quote_from(state: RailState) -> (RailState, RailState) {
+    let (sequence, state) = state.pop();
+
+    let sequence = match sequence {
+        RailVal::Quote(sequence) => sequence,
+        scalar => state.child().push(scalar),
+    };
+
+    (sequence, state)
 }
