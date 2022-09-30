@@ -22,7 +22,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     );
                     return (quote, definitions);
                 };
-                let (commands, quote) = quote.pop_quote("def");
+                let (commands, quote) = quote.pop_quote("def!");
                 // TODO: Typecheck...?
                 definitions.insert(name.clone(), RailDef::from_quote(&name, commands));
                 (quote, definitions)

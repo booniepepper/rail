@@ -654,8 +654,8 @@ pub enum RailAction<'a> {
     Quotation(RailState),
 }
 
-impl RailDef<'_> {
-    pub fn on_state<'a, F>(
+impl <'a> RailDef<'a> {
+    pub fn on_state<F>(
         name: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
@@ -672,7 +672,7 @@ impl RailDef<'_> {
         }
     }
 
-    pub fn on_jailed_state<'a, F>(
+    pub fn on_jailed_state<F>(
         name: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
@@ -693,7 +693,7 @@ impl RailDef<'_> {
         }
     }
 
-    pub fn contextless<'a, F>(
+    pub fn contextless<F>(
         name: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
@@ -708,7 +708,7 @@ impl RailDef<'_> {
         })
     }
 
-    pub fn from_quote<'a>(name: &str, quote: RailState) -> RailDef<'a> {
+    pub fn from_quote(name: &str, quote: RailState) -> RailDef<'a> {
         // TODO: Infer quote effects
         RailDef {
             name: name.to_string(),
@@ -739,6 +739,18 @@ impl RailDef<'_> {
         match &self.action {
             RailAction::Builtin(action) => action(state),
             RailAction::Quotation(quote) => quote.clone().run_in_state(state),
+        }
+    }
+
+    pub fn rename<F>(self, f: F) -> RailDef<'a>
+    where
+        F: Fn(String) -> String,
+    {
+        RailDef {
+            name: f(self.name),
+            consumes: self.consumes,
+            produces: self.produces,
+            action: self.action,
         }
     }
 
