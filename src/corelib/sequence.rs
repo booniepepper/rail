@@ -22,18 +22,25 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             .unwrap();
             quote.push_i64(len)
         }),
-        RailDef::on_state("quote", &[A], &[Quote], |quote| {
-            let (a, quote) = quote.pop();
-            let wrapper = quote.child();
-            let wrapper = wrapper.push(a);
-            quote.push_quote(wrapper)
+        RailDef::on_state("quote", &[A], &[Quote], |state| {
+            let (a, state) = state.pop();
+            let quote = state.child().push(a);
+            state.push_quote(quote)
         }),
-        RailDef::on_state("unquote", &[Quote], &[Unknown], |quote| {
-            let (wrapper, mut quote) = quote.pop_quote("unquote");
-            for value in wrapper.stack.values {
-                quote = quote.push(value);
+        RailDef::on_state("unquote", &[Quote], &[Unknown], |state| {
+            let (quote, mut state) = state.pop_quote("unquote");
+            for value in quote.stack.values {
+                state = state.push(value);
             }
-            quote
+            state
+        }),
+        RailDef::on_state("as-quote", &[A], &[Quote], |state| {
+            let (a, state) = state.pop();
+            let quote = match a {
+                RailVal::Quote(quote) => quote,
+                _ => state.child().push(a),
+            };
+            state.push_quote(quote)
         }),
         RailDef::on_state("push", &[Quote, A], &[Quote], |quote| {
             let (a, quote) = quote.pop();
@@ -120,10 +127,8 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             state.push_quote(results)
         }),
         RailDef::on_state("each!", &[Quote, Quote], &[], |state| {
-            let (command, quote) = state.stack.clone().pop_quote("each");
-            let (sequence, quote) = quote.pop_quote("each");
-
-            let state = state.replace_stack(quote);
+            let (command, state) = state.pop_quote("each!");
+            let (sequence, state) = state.pop_quote("each!");
 
             sequence
                 .stack
@@ -135,10 +140,8 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 })
         }),
         RailDef::on_jailed_state("each", &[Quote, Quote], &[], |state| {
-            let (command, quote) = state.stack.clone().pop_quote("each");
-            let (sequence, quote) = quote.pop_quote("each");
-
-            let state = state.replace_stack(quote);
+            let (command, state) = state.pop_quote("each");
+            let (sequence, state) = state.pop_quote("each");
 
             let definitions = state.definitions.clone();
 
