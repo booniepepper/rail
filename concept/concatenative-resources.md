@@ -14,3 +14,9 @@
 # Compilers
 
 - [Lessons from Writing a Compiler](https://borretti.me/article/lessons-writing-compiler) -- Fernando Borretti
+
+# Stack Machine as a Platform
+
+- [Java Virtual Machine Specification](https://cr.openjdk.java.net/~iris/se/17/latestSpec/java-se-17-jvms-fr-diffs.pdf) (JDK 17)
+  - [Java Factor](https://concatenative.org/wiki/view/Factor/Java%20Factor)
+- [Python behind the scenes #1: how the CPython VM works](https://tenthousandmeters.com/blog/python-behind-the-scenes-1-how-the-cpython-vm-works)
