@@ -66,6 +66,24 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let is_def = state.definitions.contains_key(&name);
             state.push_bool(is_def)
         }),
+        RailDef::on_state("describe", "Consumes a quoted command or command, and produces its description as a string.", &[QuoteOrCommand], &[String], |state| {
+            let (name, state) = state.pop();
+            let name = if let Some(name) = get_command_name(&name) {
+                name
+            } else {
+                rail_machine::log_warn(
+                    state.conventions,
+                    format!("{} is not a string or command", name),
+                );
+                return state;
+            };
+            if state.definitions.contains_key(&name) {
+                let description = state.definitions.get(&name).unwrap().description.clone();
+                state.push_string(description)
+            } else {
+                state.push_string(format!("Command \"{}\" is unknown.", &name))
+            }
+        }),
     ]
 }
 
