@@ -8,6 +8,7 @@ use RailType::*;
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![RailDef::on_state(
         "assert-true",
+        "FIXME",
         &[Boolean, String],
         &[],
         |quote| {

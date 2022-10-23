@@ -4,14 +4,27 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("do!", &[QuoteOrCommand], &[Unknown], do_it()),
-        RailDef::on_jailed_state("do", &[QuoteOrCommand], &[Unknown], do_it()),
-        RailDef::on_state("doin!", &[Quote, QuoteOrCommand], &[Unknown], doin()),
-        RailDef::on_jailed_state("doin", &[Quote, QuoteOrCommand], &[Unknown], doin()),
-        RailDef::on_state("def!", &[Quote, QuoteOrCommand], &[], |state| {
+        RailDef::on_state("do!", "FIXME", &[QuoteOrCommand], &[Unknown], do_it()),
+        RailDef::on_jailed_state("do", "FIXME", &[QuoteOrCommand], &[Unknown], do_it()),
+        RailDef::on_state(
+            "doin!",
+            "FIXME",
+            &[Quote, QuoteOrCommand],
+            &[Unknown],
+            doin(),
+        ),
+        RailDef::on_jailed_state(
+            "doin",
+            "FIXME",
+            &[Quote, QuoteOrCommand],
+            &[Unknown],
+            doin(),
+        ),
+        RailDef::on_state("def!", "FIXME", &[Quote, QuoteOrCommand], &[], |state| {
             let conventions = state.conventions;
             state.update_stack_and_defs(|quote, definitions| {
                 let mut definitions = definitions;
+
                 let (name, quote) = quote.pop();
                 let name = if let Some(name) = get_command_name(&name) {
                     name
@@ -22,13 +35,20 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     );
                     return (quote, definitions);
                 };
+
+                // TODO: Should be from the quote.
+                let description = "FIXME";
+
                 let (commands, quote) = quote.pop_quote("def!");
                 // TODO: Typecheck...?
-                definitions.insert(name.clone(), RailDef::from_quote(&name, commands));
+                definitions.insert(
+                    name.clone(),
+                    RailDef::from_quote(&name, description, commands),
+                );
                 (quote, definitions)
             })
         }),
-        RailDef::on_state("def?", &[QuoteOrCommand], &[Boolean], |state| {
+        RailDef::on_state("def?", "FIXME", &[QuoteOrCommand], &[Boolean], |state| {
             let (name, state) = state.pop();
             let name = if let Some(name) = get_command_name(&name) {
                 name

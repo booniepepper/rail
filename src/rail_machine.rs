@@ -643,6 +643,7 @@ pub fn new_stab() -> Stab {
 #[derive(Clone)]
 pub struct RailDef<'a> {
     pub name: String,
+    pub description: String,
     consumes: &'a [RailType],
     produces: &'a [RailType],
     action: RailAction<'a>,
@@ -654,9 +655,10 @@ pub enum RailAction<'a> {
     Quotation(RailState),
 }
 
-impl <'a> RailDef<'a> {
+impl<'a> RailDef<'a> {
     pub fn on_state<F>(
         name: &str,
+        description: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
         state_action: F,
@@ -666,6 +668,7 @@ impl <'a> RailDef<'a> {
     {
         RailDef {
             name: name.to_string(),
+            description: description.to_string(),
             consumes,
             produces,
             action: RailAction::Builtin(Arc::new(state_action)),
@@ -674,6 +677,7 @@ impl <'a> RailDef<'a> {
 
     pub fn on_jailed_state<F>(
         name: &str,
+        description: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
         state_action: F,
@@ -683,6 +687,7 @@ impl <'a> RailDef<'a> {
     {
         RailDef {
             name: name.to_string(),
+            description: description.to_string(),
             consumes,
             produces,
             action: RailAction::Builtin(Arc::new(move |state| {
@@ -695,6 +700,7 @@ impl <'a> RailDef<'a> {
 
     pub fn contextless<F>(
         name: &str,
+        description: &str,
         consumes: &'a [RailType],
         produces: &'a [RailType],
         contextless_action: F,
@@ -702,16 +708,17 @@ impl <'a> RailDef<'a> {
     where
         F: Fn() + 'a,
     {
-        RailDef::on_state(name, consumes, produces, move |state| {
+        RailDef::on_state(name, description, consumes, produces, move |state| {
             contextless_action();
             state
         })
     }
 
-    pub fn from_quote(name: &str, quote: RailState) -> RailDef<'a> {
+    pub fn from_quote(name: &str, description: &str, quote: RailState) -> RailDef<'a> {
         // TODO: Infer quote effects
         RailDef {
             name: name.to_string(),
+            description: description.to_string(),
             consumes: &[],
             produces: &[],
             action: RailAction::Quotation(quote),
@@ -748,6 +755,20 @@ impl <'a> RailDef<'a> {
     {
         RailDef {
             name: f(self.name),
+            description: self.description,
+            consumes: self.consumes,
+            produces: self.produces,
+            action: self.action,
+        }
+    }
+
+    pub fn redescribe<F>(self, f: F) -> RailDef<'a>
+    where
+        F: Fn(String) -> String,
+    {
+        RailDef {
+            name: self.name,
+            description: f(self.description),
             consumes: self.consumes,
             produces: self.produces,
             action: self.action,

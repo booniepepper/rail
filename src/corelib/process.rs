@@ -6,7 +6,7 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("exec", &[String], &[Quote], |quote| {
+        RailDef::on_state("exec", "FIXME", &[String], &[Quote], |quote| {
             let (invocation, quote) = quote.pop_string("exec");
             let invocation = invocation.trim();
             let (exe, args) = invocation.split_once(' ').unwrap_or((invocation, ""));
@@ -40,25 +40,25 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             quote.push_stab(result)
         }),
-        RailDef::on_state("env", &[], &[String], |quote| {
+        RailDef::on_state("env", "FIXME", &[], &[String], |quote| {
             let vars = env::vars().fold(rail_machine::new_stab(), |mut stab, (k, v)| {
                 stab.insert(k, RailVal::String(v));
                 stab
             });
             quote.push_stab(vars)
         }),
-        RailDef::on_state("envget", &[String], &[String], |quote| {
+        RailDef::on_state("envget", "FIXME", &[String], &[String], |quote| {
             let (key, quote) = quote.pop_string("envget");
             let var = env::var(key).unwrap_or_else(|_| "unset".to_string());
             quote.push_string(var)
         }),
-        RailDef::on_state("envset", &[String, String], &[], |quote| {
+        RailDef::on_state("envset", "FIXME", &[String, String], &[], |quote| {
             let (var, quote) = quote.pop_string("envset");
             let (key, quote) = quote.pop_string("envset");
             env::set_var(key, var);
             quote
         }),
-        RailDef::on_state("stdin", &[], &[Quote], |quote| {
+        RailDef::on_state("stdin", "FIXME", &[], &[Quote], |quote| {
             let lines = std::io::stdin()
                 .lines()
                 .filter_map(|line| line.ok())

@@ -5,7 +5,7 @@ use RailType::*;
 // TODO: These should all work for both String and Quote? Should String also be a Quote? Typeclasses?
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("len", &[QuoteOrString], &[I64], |quote| {
+        RailDef::on_state("len", "FIXME", &[QuoteOrString], &[I64], |quote| {
             let (a, quote) = quote.pop();
             let len: i64 = match a {
                 RailVal::Quote(quote) => quote.len(),
@@ -22,19 +22,19 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             .unwrap();
             quote.push_i64(len)
         }),
-        RailDef::on_state("quote", &[A], &[Quote], |state| {
+        RailDef::on_state("quote", "FIXME", &[A], &[Quote], |state| {
             let (a, state) = state.pop();
             let quote = state.child().push(a);
             state.push_quote(quote)
         }),
-        RailDef::on_state("unquote", &[Quote], &[Unknown], |state| {
+        RailDef::on_state("unquote", "FIXME", &[Quote], &[Unknown], |state| {
             let (quote, mut state) = state.pop_quote("unquote");
             for value in quote.stack.values {
                 state = state.push(value);
             }
             state
         }),
-        RailDef::on_state("as-quote", &[A], &[Quote], |state| {
+        RailDef::on_state("as-quote", "FIXME", &[A], &[Quote], |state| {
             let (a, state) = state.pop();
             let quote = match a {
                 RailVal::Quote(quote) => quote,
@@ -42,24 +42,24 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             };
             state.push_quote(quote)
         }),
-        RailDef::on_state("push", &[Quote, A], &[Quote], |quote| {
+        RailDef::on_state("push", "FIXME", &[Quote, A], &[Quote], |quote| {
             let (a, quote) = quote.pop();
             let (sequence, quote) = quote.pop_quote("push");
             let sequence = sequence.push(a);
             quote.push_quote(sequence)
         }),
-        RailDef::on_state("pop", &[Quote], &[Quote, A], |quote| {
+        RailDef::on_state("pop", "FIXME", &[Quote], &[Quote, A], |quote| {
             let (sequence, quote) = quote.pop_quote("pop");
             let (a, sequence) = sequence.pop();
             quote.push_quote(sequence).push(a)
         }),
-        RailDef::on_state("enq", &[A, Quote], &[Quote], |quote| {
+        RailDef::on_state("enq", "FIXME", &[A, Quote], &[Quote], |quote| {
             let (sequence, quote) = quote.pop_quote("push");
             let (a, quote) = quote.pop();
             let sequence = sequence.enqueue(a);
             quote.push_quote(sequence)
         }),
-        RailDef::on_state("nth", &[Quote, I64], &[A], |state| {
+        RailDef::on_state("nth", "FIXME", &[Quote, I64], &[A], |state| {
             let (nth, state) = state.pop_i64("nth");
             let (seq, state) = state.pop_quote("nth");
 
@@ -67,12 +67,12 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             state.push(nth.clone())
         }),
-        RailDef::on_state("deq", &[Quote], &[A, Quote], |quote| {
+        RailDef::on_state("deq", "FIXME", &[Quote], &[A, Quote], |quote| {
             let (sequence, quote) = quote.pop_quote("pop");
             let (a, sequence) = sequence.dequeue();
             quote.push(a).push_quote(sequence)
         }),
-        RailDef::on_state("rev", &[QuoteOrString], &[Quote], |quote| {
+        RailDef::on_state("rev", "FIXME", &[QuoteOrString], &[Quote], |quote| {
             let (a, quote) = quote.pop();
             match a {
                 RailVal::String(s) => quote.push_string(s.chars().rev().collect()),
@@ -86,7 +86,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 }
             }
         }),
-        RailDef::on_state("concat", &[Quote, Quote], &[Quote], |quote| {
+        RailDef::on_state("concat", "FIXME", &[Quote, Quote], &[Quote], |quote| {
             let (suffix, quote) = quote.pop_quote("concat");
             let (prefix, quote) = quote.pop_quote("concat");
             let mut results = quote.child();
@@ -95,7 +95,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             }
             quote.push_quote(results)
         }),
-        RailDef::on_state("filter", &[Quote, Quote], &[Quote], |state| {
+        RailDef::on_state("filter", "FIXME", &[Quote, Quote], &[Quote], |state| {
             let (predicate, state) = state.pop_quote("filter");
             let (sequence, state) = state.pop_quote("filter");
             let mut results = state.child();
@@ -111,7 +111,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             state.push_quote(results)
         }),
-        RailDef::on_state("map", &[Quote, Quote], &[Quote], |state| {
+        RailDef::on_state("map", "FIXME", &[Quote, Quote], &[Quote], |state| {
             let (transform, state) = state.pop_quote("map");
             let (sequence, state) = state.pop_quote("map");
 
@@ -126,7 +126,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             state.push_quote(results)
         }),
-        RailDef::on_state("each!", &[Quote, Quote], &[], |state| {
+        RailDef::on_state("each!", "FIXME", &[Quote, Quote], &[], |state| {
             let (command, state) = state.pop_quote("each!");
             let (sequence, state) = state.pop_quote("each!");
 
@@ -139,7 +139,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     command.clone().run_in_state(state)
                 })
         }),
-        RailDef::on_jailed_state("each", &[Quote, Quote], &[], |state| {
+        RailDef::on_jailed_state("each", "FIXME", &[Quote, Quote], &[], |state| {
             let (command, state) = state.pop_quote("each");
             let (sequence, state) = state.pop_quote("each");
 
@@ -156,7 +156,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     command.clone().jailed_run_in_state(state)
                 })
         }),
-        RailDef::on_state("zip", &[Quote, Quote], &[Quote], |state| {
+        RailDef::on_state("zip", "FIXME", &[Quote, Quote], &[Quote], |state| {
             let (b, state) = state.pop_quote("zip");
             let (a, state) = state.pop_quote("zip");
 
@@ -170,21 +170,27 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             state.push_quote(c)
         }),
-        RailDef::on_state("zip-with", &[Quote, Quote, Quote], &[Quote], |state| {
-            let (xform, state) = state.pop_quote("zip-with");
-            let (b, state) = state.pop_quote("zip-with");
-            let (a, state) = state.pop_quote("zip-with");
+        RailDef::on_state(
+            "zip-with",
+            "FIXME",
+            &[Quote, Quote, Quote],
+            &[Quote],
+            |state| {
+                let (xform, state) = state.pop_quote("zip-with");
+                let (b, state) = state.pop_quote("zip-with");
+                let (a, state) = state.pop_quote("zip-with");
 
-            let c = a
-                .stack
-                .values
-                .into_iter()
-                .zip(b.stack.values)
-                .map(|(a, b)| state.child().push(a).push(b))
-                .map(|ab| xform.clone().run_in_state(ab))
-                .fold(state.child(), |c, result| c.push_quote(result));
+                let c = a
+                    .stack
+                    .values
+                    .into_iter()
+                    .zip(b.stack.values)
+                    .map(|(a, b)| state.child().push(a).push(b))
+                    .map(|ab| xform.clone().run_in_state(ab))
+                    .fold(state.child(), |c, result| c.push_quote(result));
 
-            state.push_quote(c)
-        }),
+                state.push_quote(c)
+            },
+        ),
     ]
 }
