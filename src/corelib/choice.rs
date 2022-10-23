@@ -3,7 +3,11 @@ use crate::rail_machine::{RailDef, RailType};
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![RailDef::on_state(
         "opt",
-        "FIXME",
+        "Consumes a specially-formed quote of quotes. The quote of quotes is
+        evaluated by twos, with the first quote as a predicate and the second
+        as an action to perform. Predicates will be evaluated until a predicate
+        produces true. Only the action following the first true predicate will
+        be executed. If no predicates match, no actions will be performed.",
         &[RailType::Quote],
         &[],
         |state| {
