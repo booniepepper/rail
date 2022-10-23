@@ -2,25 +2,29 @@ use crate::rail_machine::{self, RailDef, RailState, RailType, RailVal};
 
 use RailType::*;
 
+const DEFINITIONS_PRESERVED: &str = "Any new definitions are preserved in the calling context.";
+const DEFINITIONS_LOCALY_ONLY: &str =
+    "Any definitions are local only to the quote or command performed.";
+
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("do!", "FIXME", &[QuoteOrCommand], &[Unknown], do_it()),
-        RailDef::on_jailed_state("do", "FIXME", &[QuoteOrCommand], &[Unknown], do_it()),
+        RailDef::on_state("do!", &format!("{} {}", "Consumes a quote or command and executes it, producing any output(s) of the quote or command.", DEFINITIONS_PRESERVED), &[QuoteOrCommand], &[Unknown], do_it()),
+        RailDef::on_jailed_state("do", &format!("{} {}", "Consumes a quote or command and executes it, producing any output(s) of the quote or command.", DEFINITIONS_LOCALY_ONLY), &[QuoteOrCommand], &[Unknown], do_it()),
         RailDef::on_state(
             "doin!",
-            "FIXME",
+            &format!("{} {}", "Consumes one quote and one quote or command. The latter quote or command is executed inside the first quote, producing any output(s) of the quote or command inside it.", DEFINITIONS_PRESERVED),
             &[Quote, QuoteOrCommand],
             &[Unknown],
             doin(),
         ),
         RailDef::on_jailed_state(
             "doin",
-            "FIXME",
+            &format!("{} {}", "Consumes one quote and one quote or command. The latter quote or command is executed inside the first quote, producing any output(s) of the quote or command inside it.", DEFINITIONS_LOCALY_ONLY),
             &[Quote, QuoteOrCommand],
             &[Unknown],
             doin(),
         ),
-        RailDef::on_state("def!", "FIXME", &[Quote, QuoteOrCommand], &[], |state| {
+        RailDef::on_state("def!", &format!("{} {}", "Consumes one quote and a quoted command or string. The latter quoted command or string becomes a command that executes the first quote.", DEFINITIONS_PRESERVED), &[Quote, QuoteOrCommand], &[], |state| {
             let conventions = state.conventions;
             state.update_stack_and_defs(|quote, definitions| {
                 let mut definitions = definitions;
@@ -36,7 +40,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     return (quote, definitions);
                 };
 
-                // TODO: Should be from the quote.
+                // FIXME: Should be from the quote.
                 let description = "FIXME";
 
                 let (commands, quote) = quote.pop_quote("def!");
@@ -48,7 +52,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 (quote, definitions)
             })
         }),
-        RailDef::on_state("def?", "FIXME", &[QuoteOrCommand], &[Boolean], |state| {
+        RailDef::on_state("def?", "Consumes a quote or command, and produces true when it is defined, and false otherwise.", &[QuoteOrCommand], &[Boolean], |state| {
             let (name, state) = state.pop();
             let name = if let Some(name) = get_command_name(&name) {
                 name
