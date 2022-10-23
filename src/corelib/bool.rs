@@ -4,29 +4,29 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        push_bool("true", "FIXME", true),
-        push_bool("false", "FIXME", false),
-        RailDef::on_state("not", "FIXME", &[Boolean], &[Boolean], |quote| {
+        RailDef::on_state("true", "The boolean value true.", &[], &[Boolean],|quote| quote.push_bool(true)),
+        RailDef::on_state("false", "The boolean value false.", &[], &[Boolean],|quote| quote.push_bool(false)),
+        RailDef::on_state("not", "Consumes one boolean value and produces its inverse.", &[Boolean], &[Boolean], |quote| {
             let (b, quote) = quote.pop_bool("not");
             quote.push_bool(!b)
         }),
-        RailDef::on_state("or", "FIXME", &[Boolean, Boolean], &[Boolean], |quote| {
+        RailDef::on_state("or", "Consumes two boolean values. If either are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |quote| {
             let (b2, quote) = quote.pop_bool("or");
             let (b1, quote) = quote.pop_bool("or");
             quote.push_bool(b1 || b2)
         }),
-        RailDef::on_state("and", "FIXME", &[Boolean, Boolean], &[Boolean], |quote| {
+        RailDef::on_state("and", "Consumes two boolean values. If both are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |quote| {
             let (b2, quote) = quote.pop_bool("and");
             let (b1, quote) = quote.pop_bool("and");
             quote.push_bool(b1 && b2)
         }),
-        equality("eq?", "FIXME", Equality::Equal),
-        equality("neq?", "FIXME", Equality::NotEqual),
-        binary_numeric_pred("gt?", "FIXME", |a, b| b > a, |a, b| b > a),
-        binary_numeric_pred("lt?", "FIXME", |a, b| b < a, |a, b| b < a),
-        binary_numeric_pred("gte?", "FIXME", |a, b| b >= a, |a, b| b >= a),
-        binary_numeric_pred("lte?", "FIXME", |a, b| b <= a, |a, b| b <= a),
-        RailDef::on_state("any", "FIXME", &[Quote, Quote], &[Quote], |state| {
+        equality("eq?", "Consumes two values. If they're equal, produces true. Otherwise produces false.", Equality::Equal),
+        equality("neq?", "Consumes two values. If they're not equal, produces true. Otherwise produces false.", Equality::NotEqual),
+        binary_numeric_pred("gt?", "Consumes two numbers. If the top value is greater, produces true. Otherwise produces false.", |a, b| b > a, |a, b| b > a),
+        binary_numeric_pred("lt?", "Consumes two numbers. If the top value is lesser, produces true. Otherwise produces false.", |a, b| b < a, |a, b| b < a),
+        binary_numeric_pred("gte?", "Consumes two numbers. If the top value is greater or equal, produces true. Otherwise produces false.", |a, b| b >= a, |a, b| b >= a),
+        binary_numeric_pred("lte?", "Consumes two numbers. If the top value is lesser or equal, produces true. Otherwise produces false.", |a, b| b <= a, |a, b| b <= a),
+        RailDef::on_state("any", "Consumes a sequence and a predicate. If the predicate applied to any value in the sequence is true, produces true. Otherwise produces false.", &[Quote, Quote], &[Quote], |state| {
             let (predicate, state) = state.pop_quote("any");
             let (sequence, state) = state.pop_quote("any");
 
@@ -42,12 +42,6 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             state.push_bool(false)
         }),
     ]
-}
-
-fn push_bool<'a>(name: &'a str, description: &'a str, b: bool) -> RailDef<'a> {
-    RailDef::on_state(name, description, &[], &[Boolean], move |quote| {
-        quote.push_bool(b)
-    })
 }
 
 enum Equality {
