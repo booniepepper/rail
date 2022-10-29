@@ -2,18 +2,18 @@
 # exceed four million, find the sum of the even-valued terms.
 # https://projecteuler.net/problem=2
 
-[ 1 2 ]
+[1 2]
 
-[ [ a b ] : a b a b + ] [ fib-once ] def
+[[a b] : a b a b +] [fib-once] def
 
-[ 4 1000 * 1000 * ] [ 4_million ] def
+[4 1000 * 1000 *] [4_million] def
 
-[ dup last 4_million gt? ] [ [ fib-once ] doin ] while
+[dup last 4_million gt?] [[fib-once] doin] while
 
-[ even? ] filter
+[even?] filter
 
-[ ns ] :
-    ns [ [ + ] doin ]
+[ns] :
+    ns [[+] doin]
     ns length 1 - times
 
 unquote println

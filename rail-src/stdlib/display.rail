@@ -1,5 +1,5 @@
-[ [ pl ] each ] [ pls ] def
+[[pl] each] [pls] def
 
-[ p ]           [ print ]   def
-[ pl ]          [ println ] def
-[ pls ]         [ printlns ] def
+[p]   [print]   def
+[pl]  [println] def
+[pls] [printlns] def
