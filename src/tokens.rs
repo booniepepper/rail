@@ -3,7 +3,7 @@ use regex::Regex;
 pub fn tokenize(line: &str) -> Vec<String> {
     // TODO: Validate that a line does not contain unterminated strings.
     // TODO: Allow for string escapes for quotes, newlines, etc
-    let re: Regex = Regex::new(r#"(".*?"|\S*)"#).unwrap();
+    let re: Regex = Regex::new(r#"(\[|\]|".*?"|[^\s\[\]]*)"#).unwrap();
     let line = line.replace('\n', " ");
     re.captures_iter(&line)
         .flat_map(|cap| cap.iter().take(1).collect::<Vec<_>>())
@@ -66,6 +66,22 @@ pub fn token_test_6() {
 pub fn token_test_7() {
     let actual = "1 1 [ + ] call .s";
     let expected = vec!["1", "1", "[", "+", "]", "call", ".s"];
+
+    assert_eq!(expected, tokenize(actual));
+}
+
+#[test]
+pub fn token_test_8() {
+    let actual = "1 1 [+] call .s";
+    let expected = vec!["1", "1", "[", "+", "]", "call", ".s"];
+
+    assert_eq!(expected, tokenize(actual));
+}
+
+#[test]
+pub fn token_test_9() {
+    let actual = "[1 1][+]doin .s";
+    let expected = vec!["[", "1", "1", "]", "[", "+", "]", "doin", ".s"];
 
     assert_eq!(expected, tokenize(actual));
 }
