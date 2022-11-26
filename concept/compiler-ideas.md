@@ -73,9 +73,20 @@ source.
 
 ## Represent all subprocedures as jump addresses
 
-GOTO will never die. Calling a function in a compiled program should not
-require a string equality lookup, and not even require a lookup table. Like an
-index map, I believe we can represent program state, including enough
+GOTO will never die... but also we don't have to expose it. Calling a function
+in a compiled program shouldn't require a string equality lookup, and not even
+require a lookup table.
+
+(Thanks [Travis](https://github.com/travisbhartwell)) See also: https://en.wikipedia.org/wiki/Threaded_code#Indirect_threading
+
+Like an index map, I believe we can represent program state, including enough
 information to (for example) create a stack trace, independently from the flow
 of control.
+
+If we can know failure cases (by tracking unknown/IO input) then we can
+sparsely populate enough information for _only reachable error paths._ This
+may not be a huge savings for a "large" application, like a web service that
+talks to humans, other web services, and databases. However, for the embedded
+case it may be able to give a great balance between meaningful error logs and
+small program size.
 
