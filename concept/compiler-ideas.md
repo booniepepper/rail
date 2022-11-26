@@ -40,7 +40,11 @@ in stack underflow for less lines.
 Exactly how to represent exceptional code (Result types, try/catch with
 exceptions, halt and catch fire...) can be decided independently.
 
-_P.S. a problem arises with a program like `stdin pop quote do`
+_P.S. a scarier problem arises if stdin could be read as commands. Consider
+a program like `stdin pop string-to-commands do` that allows arbitrary
+execution. The language is turing complete, so such a `string-to-commands`
+could be envisioned -- it could also be intentionally be added to the language
+later. This suggests [no dynamic execution in compiled mode](#no-dynamic-execution-in-compiled-mode)._
 
 Second, side effects:
 
@@ -57,11 +61,15 @@ modeled in a type system. The types can start out lazily (when implemented in
 a type system) and can be resolved to more specific types during interpretation
 or compilation.
 
-## No dynamics in compiled mode?
+## No dynamic execution in compiled mode?
 
 It will be useful to have a compiled mode that disallows the ability to
 execute or define unknown code. In fact, this should probably be the default
-"safe" mode of compilation. When interpreted, this is worth a warning.
+"safe" mode of compilation.
+
+When interpreting (e.g. via `railsh`), this is worth a warning. Perhaps also a
+"safe" mode that completely halts when `do` receives arguments from an IO
+source.
 
 ## Represent all subprocedures as jump addresses
 
