@@ -90,3 +90,24 @@ talks to humans, other web services, and databases. However, for the embedded
 case it may be able to give a great balance between meaningful error logs and
 small program size.
 
+## Memory handling
+
+I really enjoy the handled-memory of Rust. (Is that ok to say?) Thinking about
+garbage collection is hard, and very difficult to reason about in larger systems
+operating at scale. When the runtime behavior is consistent, it's much simpler
+to reason about.
+
+Secondly, a concatenative approach means we can statically know exactly how
+long a memory blob must last, and when it goes completely out of scope and is
+safe to free.
+
+Finally, if we know how long all (or most) memory blobs must last, we can also
+opportunistically determine the memory allocation strategies.
+
+So I think we can "handle" memory silently in a way that looks like garbage
+collection, but get away with potentially less book-keeping than something like
+C's (c|m)alloc and free. In addition we can divide up memory pages in whatever
+way makes most sense for the program under compilation, and consider this an
+area for heavy optimization.
+
+This also suggests [no dynamic execution in compiled mode](#no-dynamic-execution-in-compiled-mode)._
