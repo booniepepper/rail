@@ -1,0 +1,1 @@
+[quote [do] unquote push swap push do] [dip] def
