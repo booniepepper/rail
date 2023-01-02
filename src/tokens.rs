@@ -2,7 +2,7 @@ use regex::Regex;
 
 pub fn tokenize(line: &str) -> Vec<String> {
     // TODO: Validate that a line does not contain unterminated strings.
-    // TODO: Allow for string escapes for quotes, newlines, etc
+    // TODO: Handle character escapes for quotes, newlines, etc
     let re: Regex = Regex::new(r#"(\[|\]|".*?"|[^\s\[\]]*)"#).unwrap();
     let line = line.replace('\n', " ");
     re.captures_iter(&line)
@@ -15,7 +15,7 @@ pub fn tokenize(line: &str) -> Vec<String> {
 }
 
 #[test]
-pub fn token_test() {
+fn token_test() {
     let actual = "1 1 +";
     let expected = vec!["1", "1", "+"];
 
@@ -23,7 +23,7 @@ pub fn token_test() {
 }
 
 #[test]
-pub fn token_test_2() {
+fn token_test_2() {
     let actual = "\"hello\" \"there\"";
     let expected = vec!["\"hello\"", "\"there\""];
 
@@ -31,7 +31,7 @@ pub fn token_test_2() {
 }
 
 #[test]
-pub fn token_test_3() {
+fn token_test_3() {
     let actual = "\"hello there\"";
     let expected = vec!["\"hello there\""];
 
@@ -39,7 +39,7 @@ pub fn token_test_3() {
 }
 
 #[test]
-pub fn token_test_4() {
+fn token_test_4() {
     let actual = "\" hello there \"";
     let expected = vec!["\" hello there \""];
 
@@ -47,7 +47,7 @@ pub fn token_test_4() {
 }
 
 #[test]
-pub fn token_test_5() {
+fn token_test_5() {
     let actual = "1 2 \" hello three \" 4 5";
     let expected = vec!["1", "2", "\" hello three \"", "4", "5"];
 
@@ -55,7 +55,7 @@ pub fn token_test_5() {
 }
 
 #[test]
-pub fn token_test_6() {
+fn token_test_6() {
     let actual = "1 2 \"a # in a string is fine\" #but at the end is ignored";
     let expected = vec!["1", "2", "\"a # in a string is fine\""];
 
@@ -63,7 +63,7 @@ pub fn token_test_6() {
 }
 
 #[test]
-pub fn token_test_7() {
+fn token_test_7() {
     let actual = "1 1 [ + ] call .s";
     let expected = vec!["1", "1", "[", "+", "]", "call", ".s"];
 
@@ -71,7 +71,7 @@ pub fn token_test_7() {
 }
 
 #[test]
-pub fn token_test_8() {
+fn token_test_8() {
     let actual = "1 1 [+] call .s";
     let expected = vec!["1", "1", "[", "+", "]", "call", ".s"];
 
@@ -79,7 +79,7 @@ pub fn token_test_8() {
 }
 
 #[test]
-pub fn token_test_9() {
+fn token_test_9() {
     let actual = "[1 1][+]doin .s";
     let expected = vec!["[", "1", "1", "]", "[", "+", "]", "doin", ".s"];
 
