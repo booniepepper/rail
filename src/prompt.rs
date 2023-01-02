@@ -1,5 +1,6 @@
 use crate::loading;
 use crate::rail_machine::{self, RailState, RunConventions};
+use crate::tokens::Token;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -7,7 +8,7 @@ use rustyline::Editor;
 pub struct RailPrompt {
     is_tty: bool,
     editor: Editor<()>,
-    terms: Vec<String>,
+    terms: Vec<Token>,
     conventions: &'static RunConventions<'static>,
 }
 
@@ -31,7 +32,7 @@ impl RailPrompt {
         );
         eprintln!("{}", name_and_version.dimmed().red());
 
-        let end_state = self.fold(state, |state, term| state.run_term(term));
+        let end_state = self.fold(state, |state, term| state.run_token(term));
 
         if !end_state.stack.is_empty() {
             let end_state_msg = format!("State dump: {}", end_state.stack);
@@ -41,9 +42,9 @@ impl RailPrompt {
 }
 
 impl Iterator for RailPrompt {
-    type Item = String;
+    type Item = Token;
 
-    fn next(&mut self) -> Option<String> {
+    fn next(&mut self) -> Option<Token> {
         while self.terms.is_empty() {
             // If we're interactive with a human (at a TTY and not piped stdin),
             // we pad with a newline in case the user uses print without newline.

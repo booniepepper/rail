@@ -2,7 +2,7 @@ use std::{fmt::Debug, fs, path::Path};
 
 use crate::corelib::rail_builtin_dictionary;
 use crate::rail_machine::{RailState, RunConventions};
-use crate::tokens;
+use crate::tokens::{self, Token};
 use crate::{rail_lib_path, rail_machine};
 
 pub struct SourceConventions<'a> {
@@ -52,11 +52,11 @@ pub fn initial_rail_state(
     }
 }
 
-pub fn get_source_as_tokens(source: String) -> Vec<String> {
+pub fn get_source_as_tokens(source: String) -> Vec<Token> {
     source.split('\n').flat_map(tokens::tokenize).collect()
 }
 
-pub fn get_source_file_as_tokens<P>(path: P) -> Vec<String>
+pub fn get_source_file_as_tokens<P>(path: P) -> Vec<Token>
 where
     P: AsRef<Path> + Debug,
 {
@@ -66,7 +66,7 @@ where
     get_source_as_tokens(source)
 }
 
-pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<String> {
+pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<Token> {
     let path = rail_lib_path().join("rail-src/stdlib/all.txt");
 
     if path.is_file() {
@@ -82,7 +82,7 @@ pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<String> {
     vec![]
 }
 
-pub fn from_lib_list<P>(path: P, conventions: &SourceConventions) -> Vec<String>
+pub fn from_lib_list<P>(path: P, conventions: &SourceConventions) -> Vec<Token>
 where
     P: AsRef<Path> + Debug,
 {

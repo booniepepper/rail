@@ -4,6 +4,8 @@ use im::{HashMap, Vector};
 use std::fmt::Display;
 use std::sync::Arc;
 
+use crate::tokens::Token;
+
 #[derive(Clone)]
 pub struct RunConventions<'a> {
     pub exe_name: &'a str,
@@ -58,54 +60,38 @@ impl RailState {
         }
     }
 
-    pub fn run_tokens(self, tokens: Vec<String>) -> RailState {
-        tokens.iter().fold(self, |state, term| state.run_term(term))
+    pub fn run_tokens(self, tokens: Vec<Token>) -> RailState {
+        tokens
+            .iter()
+            .fold(self, |state, term| state.run_token(term.clone()))
     }
 
-    pub fn run_term<S>(self, term: S) -> RailState
-    where
-        S: Into<String>,
-    {
-        let term: String = term.into();
-
-        // Quotations
-        if term == "[" {
-            self.deeper()
-        } else if term == "]" {
-            self.higher()
-        }
-        // Defined operations
-        else if let Some(op) = self.clone().get_def(&term) {
-            if self.in_main() {
-                let mut op = op;
-                op.act(self)
-            } else {
-                self.push_command(&op.name)
+    pub fn run_token(self, token: Token) -> RailState {
+        match token {
+            Token::LeftBracket => self.deeper(),
+            Token::RightBracket => self.higher(),
+            Token::String(s) => self.push_string(s),
+            Token::I64(i) => self.push_i64(i),
+            Token::F64(f) => self.push_f64(f),
+            Token::Term(term) => {
+                if let Some(op) = self.clone().get_def(&term) {
+                    if self.in_main() {
+                        let mut op = op;
+                        op.act(self)
+                    } else {
+                        self.push_command(&op.name)
+                    }
+                } else if !self.in_main() {
+                    // We optimistically expect this may be a not-yet-defined term. This
+                    // gives a way to do recursive definitions.
+                    self.push_command(&term)
+                } else {
+                    // TODO: Use a logging library? Log levels? Exit in a strict mode?
+                    // TODO: Have/get details on filename/source, line number, character number
+                    let term = term.replace('\n', "\\n");
+                    derail_for_unknown_command(&term, self.conventions);
+                }
             }
-        }
-        // Strings
-        else if term.starts_with('"') && term.ends_with('"') {
-            let term = term.strip_prefix('"').unwrap().strip_suffix('"').unwrap();
-            self.push_str(term)
-        }
-        // Integers
-        else if let Ok(i) = term.parse::<i64>() {
-            self.push_i64(i)
-        }
-        // Floating point numbers
-        else if let Ok(n) = term.parse::<f64>() {
-            self.push_f64(n)
-        }
-        // Unknown
-        else if !self.in_main() {
-            // We optimistically expect this may be a not-yet-defined term. This
-            // gives a way to do recursive definitions.
-            self.push_command(&term)
-        } else {
-            // TODO: Use a logging library? Log levels? Exit in a strict mode?
-            // TODO: Have/get details on filename/source, line number, character number
-            let term = term.replace('\n', "\\n");
-            derail_for_unknown_command(&term, self.conventions);
         }
     }
 
