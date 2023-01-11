@@ -7,6 +7,7 @@ pub enum Token {
     I64(i64),
     F64(f64),
     Term(std::string::String),
+    DeferredTerm(std::string::String),
     String(std::string::String),
 }
 

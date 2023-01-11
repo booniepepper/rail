@@ -73,6 +73,7 @@ impl RailState {
             Token::String(s) => self.push_string(s),
             Token::I64(i) => self.push_i64(i),
             Token::F64(f) => self.push_f64(f),
+            Token::DeferredTerm(term) => self.push_command(&term),
             Token::Term(term) => {
                 match (self.clone().get_def(&term), self.in_main()) {
                     (Some(op), true) => {
