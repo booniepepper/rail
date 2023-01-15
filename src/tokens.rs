@@ -9,6 +9,7 @@ pub enum Token {
     Term(std::string::String),
     DeferredTerm(std::string::String),
     String(std::string::String),
+    None,
 }
 
 use Token::*;
@@ -31,6 +32,13 @@ impl From<std::string::String> for Token {
             I64(i)
         } else if let Ok(n) = tok.parse::<f64>() {
             F64(n)
+        } else if tok.starts_with('\\') {
+            let term = tok.strip_prefix("\\").unwrap().trim().to_string();
+            if term.len() == 0 {
+                None
+            } else {
+                DeferredTerm(term)
+            }
         } else {
             Term(tok)
         }
@@ -150,6 +158,19 @@ fn token_test_9() {
         Term("+".into()),
         RightBracket,
         Term("doin".into()),
+        Term(".s".into()),
+    ];
+
+    assert_eq!(expected, tokenize(actual));
+}
+
+#[test]
+fn token_test_10() {
+    let actual = "1 \\dup do .s";
+    let expected = vec![
+        I64(1),
+        DeferredTerm("dup".into()),
+        Term("do".into()),
         Term(".s".into()),
     ];
 

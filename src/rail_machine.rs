@@ -68,6 +68,7 @@ impl RailState {
 
     pub fn run_token(self, token: Token) -> RailState {
         match token {
+            Token::None => self,
             Token::LeftBracket => self.deeper(),
             Token::RightBracket => self.higher(),
             Token::String(s) => self.push_string(s),
