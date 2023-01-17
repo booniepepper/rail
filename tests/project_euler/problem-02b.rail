@@ -6,13 +6,13 @@
 
 [[a b] : a b a b +] [fib-once] def
 
-[4 1000 * 1000 *] [4_million] def
+4 1000 * 1000 * \4_million ->
 
 [dup last 4_million gt?] [[fib-once] doin] while
 
 [even?] filter
 
-[ns] :
+[ns] =>
     ns [[+] doin]
     ns length 1 - times
 

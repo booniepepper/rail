@@ -74,7 +74,7 @@ impl RailState {
             Token::String(s) => self.push_string(s),
             Token::I64(i) => self.push_i64(i),
             Token::F64(f) => self.push_f64(f),
-            Token::DeferredTerm(term) => self.push_command(&term),
+            Token::DeferredTerm(term) => self.push_deferred_command(&term),
             Token::Term(term) => {
                 match (self.clone().get_def(&term), self.in_main()) {
                     (Some(op), true) => {
@@ -223,6 +223,10 @@ impl RailState {
         self.push(RailVal::Command(op_name.to_owned()))
     }
 
+    pub fn push_deferred_command(self, op_name: &str) -> Self {
+        self.push(RailVal::DeferredCommand(op_name.to_owned()))
+    }
+
     pub fn push_quote(self, quote: RailState) -> Self {
         self.push(RailVal::Quote(quote))
     }
@@ -272,6 +276,7 @@ impl RailState {
         let (value, quote) = self.pop();
         match value {
             RailVal::Command(op) => (op, quote),
+            RailVal::DeferredCommand(op) => (op, quote),
             rail_val => panic!("{}", type_panic_msg(context, "command", rail_val)),
         }
     }
@@ -389,6 +394,7 @@ pub enum RailVal {
     I64(i64),
     F64(f64),
     Command(String),
+    DeferredCommand(String),
     Quote(RailState),
     String(String),
     Stab(Stab),
@@ -405,6 +411,7 @@ impl PartialEq for RailVal {
             (F64(a), F64(b)) => a == b,
             (String(a), String(b)) => a == b,
             (Command(a), Command(b)) => a == b,
+            (DeferredCommand(a), DeferredCommand(b)) => a == b,
             // TODO: For quotes, what about differing dictionaries? For simple lists they don't matter, for closures they do.
             (Quote(a), Quote(b)) => a.stack == b.stack,
             (Stab(a), Stab(b)) => a == b,
@@ -424,9 +431,33 @@ impl RailVal {
             RailVal::I64(_) => RailType::I64,
             RailVal::F64(_) => RailType::F64,
             RailVal::Command(_) => RailType::Command,
+            RailVal::DeferredCommand(_) => RailType::Command,
             RailVal::Quote(_) => RailType::Quote,
             RailVal::String(_) => RailType::String,
             RailVal::Stab(_) => RailType::Stab,
+        }
+    }
+
+    pub fn into_command_list(self) -> Vec<RailVal> {
+        match &self {
+            RailVal::Command(_) => vec![self],
+            RailVal::DeferredCommand(_) => vec![self],
+            RailVal::String(s) => vec![RailVal::Command(s.into())],
+            RailVal::Quote(q) => q
+                .clone()
+                .stack
+                .values
+                .into_iter()
+                .flat_map(|v| v.into_command_list())
+                .collect(),
+            _ => unimplemented!(),
+        }
+    }
+
+    pub fn into_state(self, state: &RailState) -> RailState {
+        match &self {
+            RailVal::Quote(q) => q.clone(),
+            _ => state.child().push(self),
         }
     }
 }
@@ -438,7 +469,8 @@ impl std::fmt::Display for RailVal {
             Boolean(b) => write!(fmt, "{}", if *b { "true" } else { "false" }),
             I64(n) => write!(fmt, "{}", n),
             F64(n) => write!(fmt, "{}", n),
-            Command(o) => write!(fmt, "{}", o),
+            Command(cmd) => write!(fmt, "{}", cmd),
+            DeferredCommand(cmd) => write!(fmt, "\\{}", cmd),
             Quote(q) => write!(fmt, "{}", q.stack),
             String(s) => write!(fmt, "\"{}\"", s.replace('\n', "\\n")),
             Stab(t) => {
@@ -532,6 +564,7 @@ impl Stack {
         let (value, quote) = self.pop();
         match value {
             RailVal::Command(op) => (op, quote),
+            RailVal::DeferredCommand(op) => (op, quote),
             rail_val => panic!("{}", type_panic_msg(context, "command", rail_val)),
         }
     }

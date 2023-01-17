@@ -26,7 +26,7 @@ impl From<std::string::String> for Token {
                 .unwrap()
                 .strip_suffix('"')
                 .unwrap()
-                .to_string();
+                .replace("\\n", "\n");
             String(s)
         } else if let Ok(i) = tok.parse::<i64>() {
             I64(i)
@@ -55,7 +55,7 @@ pub fn tokenize(line: &str) -> Vec<Token> {
         .filter_map(|res| res.map(|mat| mat.as_str()))
         .take_while(|s| !s.starts_with('#'))
         .filter(|s| !s.is_empty())
-        .map(|s| s.replace("\\n", "\n"))
+        .map(|s| s.to_owned())
         .map(Token::from)
         .collect()
 }
@@ -172,6 +172,20 @@ fn token_test_10() {
         DeferredTerm("dup".into()),
         Term("do".into()),
         Term(".s".into()),
+    ];
+
+    assert_eq!(expected, tokenize(actual));
+}
+
+#[test]
+fn token_test_11() {
+    let actual = "1 \\num -> num pl";
+    let expected = vec![
+        I64(1),
+        DeferredTerm("num".into()),
+        Term("->".into()),
+        Term("num".into()),
+        Term("pl".into()),
     ];
 
     assert_eq!(expected, tokenize(actual));
