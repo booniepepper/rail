@@ -33,8 +33,8 @@ impl From<std::string::String> for Token {
         } else if let Ok(n) = tok.parse::<f64>() {
             F64(n)
         } else if tok.starts_with('\\') {
-            let term = tok.strip_prefix("\\").unwrap().trim().to_string();
-            if term.len() == 0 {
+            let term = tok.strip_prefix('\\').unwrap().trim().to_string();
+            if term.is_empty() {
                 None
             } else {
                 DeferredTerm(term)
