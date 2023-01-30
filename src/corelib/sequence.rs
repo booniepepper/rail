@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use crate::rail_machine::{self, RailDef, RailType, RailVal, Stack};
 
 use RailType::*;
@@ -92,11 +90,11 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let (suffix, quote) = quote.pop();
             let (prefix, quote) = quote.pop();
 
-            match (prefix, suffix) {
-                (RailVal::String(p), RailVal::String(s)) => quote.push_string(p + &s),
+            match (&prefix, &suffix) {
+                (RailVal::String(p), RailVal::String(s)) => quote.push_string(p.to_owned() + s),
                 (RailVal::Quote(prefix), RailVal::Quote(suffix)) => {
                     let mut results = quote.child();
-                    for term in prefix.stack.values.into_iter().chain(suffix.stack.values) {
+                    for term in prefix.clone().stack.values.into_iter().chain(suffix.clone().stack.values) {
                         results = results.push(term);
                     }
                     quote.push_quote(results)
@@ -104,7 +102,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 _ => {
                     rail_machine::log_warn(
                         quote.conventions,
-                        format!("Can only perform len on quote or string but got {}", a),
+                        format!("Can only perform concat when previous two values are both strings or both quotes. Instead got {} and {}", prefix, suffix),
                     );
                     quote.push(prefix).push(suffix)
                 }
@@ -141,7 +139,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
 
             state.push_quote(results)
         }),
-        RailDef::on_state("each!", "Consume one quote as a list and another quote as commands. Run the commands on each list, any definitions will be preserved in the calling context.", &[Quote, Quote], &[Any], |state| {
+        RailDef::on_state("each!", "Consume one quote as a list and another quote as commands. Run the commands on each list, any definitions will be preserved in the calling context.", &[Quote, Quote], &[Unknown], |state| {
             let (command, state) = state.pop_quote("each!");
             let (sequence, state) = state.pop_quote("each!");
 
@@ -154,7 +152,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     command.clone().run_in_state(state)
                 })
         }),
-        RailDef::on_jailed_state("each", "Consume one quote as a list and another quote as commands. Run the commands on each list, any definitions will NOT be preserved in the calling context.", &[Quote, Quote], &[], |state| {
+        RailDef::on_jailed_state("each", "Consume one quote as a list and another quote as commands. Run the commands on each list, any definitions will NOT be preserved in the calling context.", &[Quote, Quote], &[Unknown], |state| {
             let (command, state) = state.pop_quote("each");
             let (sequence, state) = state.pop_quote("each");
 

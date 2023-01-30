@@ -9,22 +9,38 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         printer("p", "Consumes one value and prints it.", &|a| {
             print_or_die(|out| out.write_fmt(format_args!("{}", a)))
         }),
-        printer("pl", "Consumes one value, prints it, and prints a newline.", &|a| {
-            print_or_die(|out| out.write_fmt(format_args!("{}\n", a)))
-        }),
+        printer(
+            "pl",
+            "Consumes one value, prints it, and prints a newline.",
+            &|a| print_or_die(|out| out.write_fmt(format_args!("{}\n", a))),
+        ),
         RailDef::contextless("nl", "Prints a newline.", &[], &[], || {
             print_or_die(|out| out.write(b"\n"))
         }),
-        RailDef::on_state("status", "Prints the current status of the program.", &[], &[], |state| {
-            print_or_die(|out| out.write_fmt(format_args!("{}\n", state.stack)));
-            state
-        }),
-        RailDef::contextless("clear", "When invoked in a terminal context, clears the screen.", &[], &[], || {
-            clearscreen::clear().expect("Unable to clear screen")
-        }),
-        RailDef::on_state("version", "Produces the version of Rail currently in use.", &[], &[RailType::String], |quote| {
-            quote.push_str(RAIL_VERSION)
-        }),
+        RailDef::on_state(
+            "status",
+            "Prints the current status of the program.",
+            &[],
+            &[],
+            |state| {
+                print_or_die(|out| out.write_fmt(format_args!("{}\n", state.stack)));
+                state
+            },
+        ),
+        RailDef::contextless(
+            "clear",
+            "When invoked in a terminal context, clears the screen.",
+            &[],
+            &[],
+            || clearscreen::clear().expect("Unable to clear screen"),
+        ),
+        RailDef::on_state(
+            "version",
+            "Produces the version of Rail currently in use.",
+            &[],
+            &[RailType::String],
+            |quote| quote.push_str(RAIL_VERSION),
+        ),
     ]
 }
 
