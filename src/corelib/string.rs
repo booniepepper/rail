@@ -4,20 +4,20 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("upcase", "FIXME", &[String], &[String], |quote| {
+        RailDef::on_state("upcase", "Consume a string and produce an identical string in all uppercase.", &[String], &[String], |quote| {
             let (s, quote) = quote.pop_string("upcase");
             quote.push_string(s.to_uppercase())
         }),
-        RailDef::on_state("downcase", "FIXME", &[String], &[String], |quote| {
+        RailDef::on_state("downcase", "Consume a string and produce an identical string in all lowercase.", &[String], &[String], |quote| {
             let (s, quote) = quote.pop_string("downcase");
             quote.push_string(s.to_lowercase())
         }),
-        RailDef::on_state("trim", "FIXME", &[String], &[String], |quote| {
+        RailDef::on_state("trim", "Consume a string and produce an identical string with all leading and trailing whitespace removed.", &[String], &[String], |quote| {
             let (s, quote) = quote.pop_string("trim");
             quote.push_string(s.trim().to_string())
         }),
         // TODO: Should this also work on Quotes?
-        RailDef::on_state("split", "FIXME", &[String, String], &[Quote], |state| {
+        RailDef::on_state("split", "Consume a string and a string as a separator. Produce a list of terms from the first string split on the separator.", &[String, String], &[Quote], |state| {
             let (delimiter, state) = state.pop_string("split");
             let (s, state) = state.pop_string("split");
 
@@ -28,14 +28,14 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             state.push_quote(words)
         }),
         // TODO: Should this also work on Quotes?
-        RailDef::on_state("join", "FIXME", &[Quote, String], &[String], |quote| {
+        RailDef::on_state("join", "Consume a list of strings and a string separator. Produce a string with all strings in the original list joined with the separator.", &[Quote, String], &[String], |quote| {
             let (delimiter, quote) = quote.pop_string("join");
             let (strings, quote) = quote.pop_quote("join");
             quote.push_string(join("join", strings.stack, &delimiter))
         }),
         RailDef::on_state(
             "contains?",
-            "FIXME",
+            "Consume one string and one string as a substring. Produce true if the substring occurs in the original string, and false otherwise.",
             &[String, String],
             &[Boolean],
             |quote| {
@@ -47,7 +47,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         ),
         RailDef::on_state(
             "starts-with?",
-            "FIXME",
+            "Consume one string and one string as a substring. Produce true if the substring is a prefix of the original string, and false otherwise.",
             &[String, String],
             &[Boolean],
             |quote| {
@@ -59,7 +59,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         ),
         RailDef::on_state(
             "ends-with?",
-            "FIXME",
+            "Consume one string and one string as a substring. Produce true if the substring is a suffix of the original string, and false otherwise.",
             &[String, String],
             &[Boolean],
             |quote| {
@@ -69,7 +69,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 quote.push_bool(is_suffix)
             },
         ),
-        RailDef::on_state("to-string", "FIXME", &[A], &[String], |quote| {
+        RailDef::on_state("to-string", "Consume one value and produce a string representation of it.", &[A], &[String], |quote| {
             let (a, quote) = quote.pop();
             let a = format!("{}", a);
             quote.push_string(a)

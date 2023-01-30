@@ -6,23 +6,23 @@ use crate::RAIL_VERSION;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        printer("p", "FIXME", &|a| {
+        printer("p", "Consumes one value and prints it.", &|a| {
             print_or_die(|out| out.write_fmt(format_args!("{}", a)))
         }),
-        printer("pl", "FIXME", &|a| {
+        printer("pl", "Consumes one value, prints it, and prints a newline.", &|a| {
             print_or_die(|out| out.write_fmt(format_args!("{}\n", a)))
         }),
-        RailDef::contextless("nl", "FIXME", &[], &[], || {
+        RailDef::contextless("nl", "Prints a newline.", &[], &[], || {
             print_or_die(|out| out.write(b"\n"))
         }),
-        RailDef::on_state("status", "FIXME", &[], &[], |state| {
+        RailDef::on_state("status", "Prints the current status of the program.", &[], &[], |state| {
             print_or_die(|out| out.write_fmt(format_args!("{}\n", state.stack)));
             state
         }),
-        RailDef::contextless("clear", "FIXME", &[], &[], || {
+        RailDef::contextless("clear", "When invoked in a terminal context, clears the screen.", &[], &[], || {
             clearscreen::clear().expect("Unable to clear screen")
         }),
-        RailDef::on_state("version", "FIXME", &[], &[RailType::String], |quote| {
+        RailDef::on_state("version", "Produces the version of Rail currently in use.", &[], &[RailType::String], |quote| {
             quote.push_str(RAIL_VERSION)
         }),
     ]

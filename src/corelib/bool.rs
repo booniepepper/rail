@@ -4,21 +4,21 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("true", "The boolean value true.", &[], &[Boolean],|quote| quote.push_bool(true)),
-        RailDef::on_state("false", "The boolean value false.", &[], &[Boolean],|quote| quote.push_bool(false)),
-        RailDef::on_state("not", "Consumes one boolean value and produces its inverse.", &[Boolean], &[Boolean], |quote| {
-            let (b, quote) = quote.pop_bool("not");
-            quote.push_bool(!b)
+        RailDef::on_state("true", "The boolean value true.", &[], &[Boolean],|state| state.push_bool(true)),
+        RailDef::on_state("false", "The boolean value false.", &[], &[Boolean],|state| state.push_bool(false)),
+        RailDef::on_state("not", "Consumes one boolean value and produces its inverse.", &[Boolean], &[Boolean], |state| {
+            let (b, state) = state.pop_bool("not");
+            state.push_bool(!b)
         }),
-        RailDef::on_state("or", "Consumes two boolean values. If either are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |quote| {
-            let (b2, quote) = quote.pop_bool("or");
-            let (b1, quote) = quote.pop_bool("or");
-            quote.push_bool(b1 || b2)
+        RailDef::on_state("or", "Consumes two boolean values. If either are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |state| {
+            let (b2, state) = state.pop_bool("or");
+            let (b1, state) = state.pop_bool("or");
+            state.push_bool(b1 || b2)
         }),
-        RailDef::on_state("and", "Consumes two boolean values. If both are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |quote| {
-            let (b2, quote) = quote.pop_bool("and");
-            let (b1, quote) = quote.pop_bool("and");
-            quote.push_bool(b1 && b2)
+        RailDef::on_state("and", "Consumes two boolean values. If both are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |state| {
+            let (b2, state) = state.pop_bool("and");
+            let (b1, state) = state.pop_bool("and");
+            state.push_bool(b1 && b2)
         }),
         equality("eq?", "Consumes two values. If they're equal, produces true. Otherwise produces false.", Equality::Equal),
         equality("neq?", "Consumes two values. If they're not equal, produces true. Otherwise produces false.", Equality::NotEqual),

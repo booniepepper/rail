@@ -5,7 +5,7 @@ use RailType::*;
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![RailDef::on_state(
         "times",
-        "FIXME",
+        "Consume a quotation and an integer, and perform the quotation the specified number of times.",
         &[Quote, I64],
         &[],
         |state| {

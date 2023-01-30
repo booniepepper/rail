@@ -4,28 +4,28 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        unary_numeric_op("abs", "FIXME", |a| a.abs(), |a| a.abs()),
-        unary_numeric_op("negate", "FIXME", |a| -a, |a| -a),
-        unary_to_f64_op("sqrt", "FIXME", |a| a.sqrt()),
-        unary_to_i64_op("floor", "FIXME", |a| a),
-        binary_numeric_op("+", "FIXME", |a, b| a + b, |a, b| a + b),
-        binary_numeric_op("-", "FIXME", |a, b| a - b, |a, b| a - b),
-        binary_numeric_op("*", "FIXME", |a, b| a * b, |a, b| a * b),
-        binary_numeric_op("/", "FIXME", |a, b| a / b, |a, b| a / b),
-        binary_numeric_op("mod", "FIXME", |a, b| a % b, |a, b| a % b),
-        RailDef::on_state("int-max", "FIXME", &[], &[I64], |quote| {
+        unary_numeric_op("abs", "Consume a number and produce its absolute value.", |a| a.abs(), |a| a.abs()),
+        unary_numeric_op("negate", "Consume a number and produce its negation.", |a| -a, |a| -a),
+        unary_to_f64_op("sqrt", "Consume a number and produce its square root.", |a| a.sqrt()),
+        unary_to_i64_op("floor", "Consume a number and produce its floor.", |a| a),
+        binary_numeric_op("+", "Consume two numbers and produce their sum.", |a, b| a + b, |a, b| a + b),
+        binary_numeric_op("-", "Consume two numbers and produce their difference.", |a, b| a - b, |a, b| a - b),
+        binary_numeric_op("*", "Consume two numbers and produce their product.", |a, b| a * b, |a, b| a * b),
+        binary_numeric_op("/", "Consume two numbers and produce their ratio.", |a, b| a / b, |a, b| a / b),
+        binary_numeric_op("mod", "Consume two numbers and produce their remainder.", |a, b| a % b, |a, b| a % b),
+        RailDef::on_state("int-max", "Produce the maximum integer value.", &[], &[I64], |quote| {
             quote.push_i64(i64::MAX)
         }),
-        RailDef::on_state("int-min", "FIXME", &[], &[I64], |quote| {
+        RailDef::on_state("int-min", "Produce the minimum integer value.", &[], &[I64], |quote| {
             quote.push_i64(i64::MIN)
         }),
-        RailDef::on_state("float-max", "FIXME", &[], &[F64], |quote| {
+        RailDef::on_state("float-max", "Produce the maximum floating-point value.", &[], &[F64], |quote| {
             quote.push_f64(f64::MAX)
         }),
-        RailDef::on_state("float-min", "FIXME", &[], &[F64], |quote| {
+        RailDef::on_state("float-min", "Produce the minimum floating-point value.", &[], &[F64], |quote| {
             quote.push_f64(f64::MIN)
         }),
-        RailDef::on_state("digits", "FIXME", &[I64], &[Quote], |quote| {
+        RailDef::on_state("digits", "Consume a number and produce a list of its decimal digits.", &[I64], &[Quote], |quote| {
             let (n, quote) = quote.pop_i64("digits");
             let ns = quote.child();
             if n == 0 {
