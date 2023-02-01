@@ -2,7 +2,6 @@ use std::fmt::Display;
 use std::io::{self, Stdout, Write};
 
 use crate::rail_machine::{RailDef, RailType, RailVal};
-use crate::RAIL_VERSION;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
@@ -33,13 +32,6 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             &[],
             &[],
             || clearscreen::clear().expect("Unable to clear screen"),
-        ),
-        RailDef::on_state(
-            "version",
-            "Produces the version of Rail currently in use.",
-            &[],
-            &[RailType::String],
-            |quote| quote.push_str(RAIL_VERSION),
         ),
     ]
 }

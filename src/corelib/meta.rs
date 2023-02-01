@@ -1,4 +1,7 @@
-use crate::rail_machine::{Context, RailDef, RailType};
+use crate::{
+    rail_machine::{Context, RailDef, RailType},
+    RAIL_VERSION,
+};
 
 use RailType::*;
 
@@ -43,6 +46,13 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 });
                 wrapper.push_quote(quote)
             },
+        ),
+        RailDef::on_state(
+            "version",
+            "Produces the version of Rail currently in use.",
+            &[],
+            &[RailType::String],
+            |quote| quote.push_str(RAIL_VERSION),
         ),
     ]
 }
