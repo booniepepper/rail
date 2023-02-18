@@ -1,7 +1,8 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use colored::Colorize;
+use directories::ProjectDirs;
+pub use loading::SourceConventions;
+pub use rail_machine::RunConventions;
+use std::path::PathBuf;
 
 pub mod corelib;
 pub mod loading;
@@ -14,10 +15,11 @@ pub const RAIL_WARNING_PREFIX: &str = "WARN";
 pub const RAIL_FATAL_PREFIX: &str = "Derailed";
 
 pub fn rail_lib_path() -> PathBuf {
-    let home = env::var("HOME").or_else(|_| env::var("HOMEDRIVE")).unwrap();
-    let path = format!("{}/.local/share/rail/{}", home, RAIL_VERSION);
-    Path::new(&path).to_owned()
+    let app = format!("rail-{}", RAIL_VERSION);
+    let home = ProjectDirs::from("army", "rail-lang", &app).unwrap_or_else(|| {
+        let msg = "Unable to access a suitable directory for Rail.".to_string();
+        eprintln!("{}", msg.dimmed().red());
+        std::process::exit(1)
+    });
+    home.data_dir().to_owned()
 }
-
-pub use loading::SourceConventions;
-pub use rail_machine::RunConventions;
