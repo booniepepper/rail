@@ -1,16 +1,17 @@
-use colored::Colorize;
-
 use im::{HashMap, Vector};
 use std::fmt::Display;
 use std::sync::Arc;
 
+use crate::log;
 use crate::tokens::Token;
 
 #[derive(Clone)]
 pub struct RunConventions<'a> {
     pub exe_name: &'a str,
     pub exe_version: &'a str,
+    pub info_prefix: &'a str,
     pub warn_prefix: &'a str,
+    pub error_prefix: &'a str,
     pub fatal_prefix: &'a str,
 }
 
@@ -255,7 +256,7 @@ impl RailState {
         let (value, quote) = self.pop();
         match value {
             RailVal::Boolean(b) => (b, quote),
-            _ => panic!("{}", type_panic_msg(context, "bool", value)),
+            _ => panic!("{}", log::type_panic_msg(context, "bool", value)),
         }
     }
 
@@ -263,7 +264,7 @@ impl RailState {
         let (value, quote) = self.pop();
         match value {
             RailVal::I64(n) => (n, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "i64", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "i64", rail_val)),
         }
     }
 
@@ -271,7 +272,7 @@ impl RailState {
         let (value, quote) = self.pop();
         match value {
             RailVal::F64(n) => (n, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "f64", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "f64", rail_val)),
         }
     }
 
@@ -280,7 +281,7 @@ impl RailState {
         match value {
             RailVal::Command(op) => (op, quote),
             RailVal::DeferredCommand(op) => (op, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "command", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "command", rail_val)),
         }
     }
 
@@ -290,7 +291,7 @@ impl RailState {
             RailVal::Quote(subquote) => (subquote, quote),
             // TODO: Can we coerce somehow?
             // RailVal::Stab(s) => (stab_to_quote(s), quote),
-            rail_val => panic!("{}", type_panic_msg(context, "quote", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "quote", rail_val)),
         }
     }
 
@@ -300,7 +301,7 @@ impl RailState {
             RailVal::Stab(s) => (s, quote),
             // TODO: Can we coerce somehow?
             // RailVal::Quote(q) => (quote_to_stab(q.stack), quote),
-            rail_val => panic!("{}", type_panic_msg(context, "string", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "string", rail_val)),
         }
     }
 
@@ -312,7 +313,7 @@ impl RailState {
         if !entry.is_empty() {
             panic!(
                 "{}",
-                type_panic_msg(context, "[ string a ]", RailVal::Quote(original_entry))
+                log::type_panic_msg(context, "[ string a ]", RailVal::Quote(original_entry))
             );
         }
 
@@ -323,7 +324,7 @@ impl RailState {
         let (value, quote) = self.pop();
         match value {
             RailVal::String(s) => (s, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "string", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "string", rail_val)),
         }
     }
 
@@ -543,7 +544,7 @@ impl Stack {
         let (value, quote) = self.pop();
         match value {
             RailVal::Boolean(b) => (b, quote),
-            _ => panic!("{}", type_panic_msg(context, "bool", value)),
+            _ => panic!("{}", log::type_panic_msg(context, "bool", value)),
         }
     }
 
@@ -551,7 +552,7 @@ impl Stack {
         let (value, quote) = self.pop();
         match value {
             RailVal::I64(n) => (n, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "i64", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "i64", rail_val)),
         }
     }
 
@@ -559,7 +560,7 @@ impl Stack {
         let (value, quote) = self.pop();
         match value {
             RailVal::F64(n) => (n, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "f64", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "f64", rail_val)),
         }
     }
 
@@ -568,7 +569,7 @@ impl Stack {
         match value {
             RailVal::Command(op) => (op, quote),
             RailVal::DeferredCommand(op) => (op, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "command", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "command", rail_val)),
         }
     }
 
@@ -578,7 +579,7 @@ impl Stack {
             RailVal::Quote(subquote) => (subquote, quote),
             // TODO: Can we coerce somehow?
             // RailVal::Stab(s) => (stab_to_quote(s), quote),
-            rail_val => panic!("{}", type_panic_msg(context, "quote", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "quote", rail_val)),
         }
     }
 
@@ -588,7 +589,7 @@ impl Stack {
             RailVal::Stab(s) => (s, quote),
             // TODO: Can we coerce somehow?
             // RailVal::Quote(q) => (quote_to_stab(q.values), quote),
-            rail_val => panic!("{}", type_panic_msg(context, "string", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "string", rail_val)),
         }
     }
 
@@ -600,7 +601,7 @@ impl Stack {
         if !entry.is_empty() {
             panic!(
                 "{}",
-                type_panic_msg(context, "[ string a ]", RailVal::Quote(original_entry))
+                log::type_panic_msg(context, "[ string a ]", RailVal::Quote(original_entry))
             );
         }
 
@@ -611,7 +612,7 @@ impl Stack {
         let (value, quote) = self.pop();
         match value {
             RailVal::String(s) => (s, quote),
-            rail_val => panic!("{}", type_panic_msg(context, "string", rail_val)),
+            rail_val => panic!("{}", log::type_panic_msg(context, "string", rail_val)),
         }
     }
 
@@ -750,7 +751,7 @@ impl<'a> RailDef<'a> {
     pub fn act(&mut self, state: RailState) -> RailState {
         if state.stack.len() < self.consumes.len() {
             // TODO: At some point will want source context here like line/column number.
-            log_warn(
+            log::warn(
                 state.conventions,
                 format!(
                     "Underflow for \"{}\" (takes: {}, gives: {}). State: {}",
@@ -818,23 +819,6 @@ impl<'a> RailDef<'a> {
 // TODO: Update places these are referenced to return Result.
 
 pub fn derail_for_unknown_command(name: &str, conv: &RunConventions) -> ! {
-    log_fatal(conv, format!("Unknown command '{}'", name));
+    log::fatal(conv, format!("Unknown command '{}'", name));
     std::process::exit(1)
-}
-
-pub fn type_panic_msg(context: &str, expected: &str, actual: RailVal) -> String {
-    format!(
-        "[Context: {}] Wanted {}, but got {}",
-        context, expected, actual
-    )
-}
-
-pub fn log_warn(conv: &RunConventions, thing: impl Display) {
-    let msg = format!("{}: {}", conv.warn_prefix, thing).dimmed().red();
-    eprintln!("{}", msg);
-}
-
-pub fn log_fatal(conv: &RunConventions, thing: impl Display) {
-    let msg = format!("{}: {}", conv.fatal_prefix, thing).dimmed().red();
-    eprintln!("{}", msg);
 }

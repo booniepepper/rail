@@ -1,5 +1,4 @@
-use colored::Colorize;
-
+use crate::log;
 use crate::rail_machine::{RailDef, RailType};
 
 use RailType::*;
@@ -16,8 +15,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let (b, quote) = quote.pop_bool("assert-true");
 
             if !b {
-                let msg = format!("Assertion failed: {}", msg).red();
-                eprintln!("{}", msg);
+                log::error(quote.conventions, format!("Assertion failed: {}", msg));
                 std::process::exit(1);
             }
 

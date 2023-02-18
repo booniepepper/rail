@@ -1,50 +1,55 @@
 use clap::{Parser, Subcommand};
-use colored::Colorize;
 use rail_lang::prompt::RailPrompt;
-use rail_lang::rail_machine::RunConventions;
-use rail_lang::{loading, RAIL_FATAL_PREFIX, RAIL_VERSION, RAIL_WARNING_PREFIX};
+use rail_lang::{
+    loading, log, RunConventions, RAIL_ERROR_PREFIX, RAIL_FATAL_PREFIX, RAIL_INFO_PREFIX,
+    RAIL_VERSION, RAIL_WARN_PREFIX,
+};
 
 const EXE_NAME: &str = "railsh";
 
-const CONVENTIONS: RunConventions = RunConventions {
+const CONV: RunConventions = RunConventions {
     exe_name: EXE_NAME,
     exe_version: RAIL_VERSION,
-    warn_prefix: RAIL_WARNING_PREFIX,
+    info_prefix: RAIL_INFO_PREFIX,
+    warn_prefix: RAIL_WARN_PREFIX,
+    error_prefix: RAIL_ERROR_PREFIX,
     fatal_prefix: RAIL_FATAL_PREFIX,
 };
 
 pub fn main() {
     let args = RailShell::parse();
 
-    let state = match loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS) {
+    let state = match loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONV) {
         Ok(state) => state,
         Err((state, err)) => {
-            eprintln!("Error loading initial state: {:?}", err);
-            eprintln!("State dump: {}", state.stack);
+            log::error(&CONV, format!("Error loading initial state: {:?}", err));
+            log::error(&CONV, format!("State dump: {}", state.stack));
             std::process::exit(1);
         }
     };
 
     let end_state = match args.mode {
-        Some(Mode::Interactive) | None => RailPrompt::new(&CONVENTIONS).run(state),
+        Some(Mode::Interactive) | None => RailPrompt::new(&CONV).run(state),
         Some(Mode::Run { file }) => {
             let tokens = loading::get_source_file_as_tokens(file);
             state.run_tokens(tokens)
         }
-        Some(Mode::RunStdin) => unimplemented!("I don't know how to run stdin yet"),
+        Some(Mode::RunStdin) => {
+            log::error(&CONV, "I don't know how to run stdin yet");
+            std::process::exit(1);
+        }
     };
 
     let end_state = match end_state {
         Ok(state) => state,
         Err((state, err)) => {
-            eprintln!("Exiting with error: {:?}", err);
+            log::error(&CONV, format!("Exiting with error: {:?}", err));
             state
         }
     };
 
     if !end_state.stack.is_empty() {
-        let end_state_msg = format!("State dump: {}", end_state.stack);
-        eprintln!("{}", end_state_msg.dimmed().red());
+        log::error(&CONV, format!("State dump: {}", end_state.stack));
     }
 }
 

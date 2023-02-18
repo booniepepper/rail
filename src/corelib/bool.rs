@@ -1,4 +1,5 @@
-use crate::rail_machine::{self, RailDef, RailType, RailVal};
+use crate::log;
+use crate::rail_machine::{RailDef, RailType, RailVal};
 
 use RailType::*;
 
@@ -91,7 +92,7 @@ where
                 (F64(a), I64(b)) => quote.push_bool(f64_op(a, b as f64)),
                 (F64(a), F64(b)) => quote.push_bool(f64_op(a, b)),
                 (a, b) => {
-                    rail_machine::log_warn(
+                    log::warn(
                         quote.conventions,
                         format!(
                             "Can only perform {} on numeric values but got {} and {}",

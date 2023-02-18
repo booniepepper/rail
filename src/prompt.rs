@@ -1,7 +1,6 @@
-use crate::loading;
-use crate::rail_machine::{self, RailRunResult, RailState, RunConventions};
+use crate::rail_machine::{RailRunResult, RailState, RunConventions};
 use crate::tokens::Token;
-use colored::Colorize;
+use crate::{loading, log};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -24,11 +23,13 @@ impl RailPrompt {
     }
 
     pub fn run(self, state: RailState) -> RailRunResult {
-        let name_and_version = format!(
-            "{} {}",
-            self.conventions.exe_name, self.conventions.exe_version
+        log::info(
+            state.conventions,
+            format!(
+                "{} {}",
+                self.conventions.exe_name, self.conventions.exe_version
+            ),
         );
-        eprintln!("{}", name_and_version.dimmed().red());
 
         self.fold(Ok(state), |state, term| match state {
             Ok(state) => state.run_tokens(term),
@@ -53,14 +54,14 @@ impl Iterator for RailPrompt {
         if let Err(e) = input {
             // ^D and ^C are not error cases.
             if let ReadlineError::Eof = e {
-                rail_machine::log_fatal(self.conventions, "End of input");
+                log::fatal(self.conventions, "End of input");
                 return None;
             } else if let ReadlineError::Interrupted = e {
-                rail_machine::log_fatal(self.conventions, "Process interrupt");
+                log::fatal(self.conventions, "Process interrupt");
                 return None;
             }
 
-            rail_machine::log_fatal(self.conventions, e);
+            log::fatal(self.conventions, e);
             std::process::exit(1);
         }
 

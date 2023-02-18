@@ -1,4 +1,7 @@
-use crate::rail_machine::{self, RailDef, RailState, RailType, RailVal};
+use crate::{
+    log,
+    rail_machine::{RailDef, RailState, RailType, RailVal},
+};
 
 use RailType::*;
 
@@ -33,7 +36,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 let name = if let Some(name) = get_command_name(&name) {
                     name
                 } else {
-                    rail_machine::log_warn(
+                    log::warn(
                         conventions,
                         format!("{} is not a string or command", name),
                     );
@@ -60,7 +63,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 let (new_name, old_name) = if let (Some(new_name), Some(old_name)) = (get_command_name(&new_name), get_command_name(&old_name)) {
                     (new_name, old_name)
                 } else {
-                    rail_machine::log_warn(
+                    log::warn(
                         conventions,
                         format!("Either {} or {} is not a command", old_name, new_name),
                     );
@@ -134,7 +137,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let name = if let Some(name) = get_command_name(&name) {
                 name
             } else {
-                rail_machine::log_warn(
+                log::warn(
                     state.conventions,
                     format!("{} is not a string or command", name),
                 );
@@ -148,7 +151,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let name = if let Some(name) = get_command_name(&name) {
                 name
             } else {
-                rail_machine::log_warn(
+                log::warn(
                     state.conventions,
                     format!("{} is not a string or command", name),
                 );
@@ -175,7 +178,7 @@ fn do_it() -> impl Fn(RailState) -> RailState {
                 action.clone().act(state.clone())
             }
             _ => {
-                rail_machine::log_warn(
+                log::warn(
                     state.conventions,
                     format!("{} is not a quote or command", command),
                 );
@@ -194,7 +197,7 @@ fn doin() -> impl Fn(RailState) -> RailState {
             }
             RailVal::Quote(commands) => commands.clone(),
             _ => {
-                rail_machine::type_panic_msg("doin", "Command or Quote", commands);
+                log::type_panic_msg("doin", "Command or Quote", commands);
                 panic!()
             }
         };

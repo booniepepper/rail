@@ -1,4 +1,5 @@
-use crate::rail_machine::{self, RailDef, RailType, RailVal};
+use crate::log;
+use crate::rail_machine::{RailDef, RailType, RailVal};
 
 use RailType::*;
 
@@ -119,7 +120,7 @@ where
             RailVal::I64(n) => quote.push_i64(i64_op(n)),
             RailVal::F64(n) => quote.push_f64(f64_op(n)),
             _ => {
-                rail_machine::log_warn(
+                log::warn(
                     quote.conventions,
                     format!("Can only perform {} on numeric values, but got {}", name, n),
                 );
@@ -139,7 +140,7 @@ where
             RailVal::I64(n) => quote.push_f64(f64_op(n as f64)),
             RailVal::F64(n) => quote.push_f64(f64_op(n)),
             _ => {
-                rail_machine::log_warn(
+                log::warn(
                     quote.conventions,
                     format!("Can only perform {} on numeric values, but got {}", name, n),
                 );
@@ -159,7 +160,7 @@ where
             RailVal::I64(n) => quote.push_i64(i64_op(n)),
             RailVal::F64(n) => quote.push_i64(i64_op(n as i64)),
             _ => {
-                rail_machine::log_warn(
+                log::warn(
                     quote.conventions,
                     format!("Can only perform {} on numeric values, but got {}", name, n),
                 );
@@ -195,7 +196,7 @@ where
                 (F64(a), I64(b)) => quote.push_f64(f64_op(a, b as f64)),
                 (F64(a), F64(b)) => quote.push_f64(f64_op(a, b)),
                 (a, b) => {
-                    rail_machine::log_warn(
+                    log::warn(
                         quote.conventions,
                         format!(
                             "Can only perform {} on numeric values but got {} and {}",

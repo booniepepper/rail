@@ -1,9 +1,10 @@
 use std::{fmt::Debug, fs, path::Path};
 
 use crate::corelib::rail_builtin_dictionary;
+use crate::log;
+use crate::rail_lib_path;
 use crate::rail_machine::{RailRunResult, RailState, RunConventions};
 use crate::tokens::{self, Token};
-use crate::{rail_lib_path, rail_machine};
 
 pub struct SourceConventions<'a> {
     pub lib_exts: &'a [&'a str],
@@ -67,7 +68,7 @@ where
 }
 
 pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<Token> {
-    let path = rail_lib_path().join("rail-src/stdlib/all.txt");
+    let path = rail_lib_path(rc).join("rail-src/stdlib/all.txt");
 
     if path.is_file() {
         return from_lib_list(path, &RAIL_SOURCE_CONVENTIONS);
@@ -77,7 +78,7 @@ pub fn from_rail_stdlib(rc: &RunConventions) -> Vec<Token> {
         "Unable to load stdlib. Wanted to find it at {:?}\nDo you need to run 'railup bootstrap'?",
         path
     );
-    rail_machine::log_warn(rc, message);
+    log::warn(rc, message);
 
     vec![]
 }

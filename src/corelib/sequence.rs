@@ -1,4 +1,5 @@
-use crate::rail_machine::{self, RailDef, RailType, RailVal, Stack};
+use crate::log;
+use crate::rail_machine::{RailDef, RailType, RailVal, Stack};
 
 use RailType::*;
 
@@ -11,7 +12,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 RailVal::Quote(quote) => quote.len(),
                 RailVal::String(s) => s.len(),
                 _ => {
-                    rail_machine::log_warn(
+                    log::warn(
                         quote.conventions,
                         format!("Can only perform len on quote or string but got {}", a),
                     );
@@ -78,7 +79,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 RailVal::String(s) => quote.push_string(s.chars().rev().collect()),
                 RailVal::Quote(q) => quote.push_quote(q.reverse()),
                 _ => {
-                    rail_machine::log_warn(
+                    log::warn(
                         quote.conventions,
                         format!("Can only perform len on quote or string but got {}", a),
                     );
@@ -100,7 +101,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                     quote.push_quote(results)
                 }
                 _ => {
-                    rail_machine::log_warn(
+                    log::warn(
                         quote.conventions,
                         format!("Can only perform concat when previous two values are both strings or both quotes. Instead got {} and {}", prefix, suffix),
                     );
