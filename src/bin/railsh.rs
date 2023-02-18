@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 use rail_lang::prompt::RailPrompt;
 use rail_lang::rail_machine::RunConventions;
 use rail_lang::{loading, RAIL_FATAL_PREFIX, RAIL_VERSION, RAIL_WARNING_PREFIX};
@@ -15,15 +16,35 @@ const CONVENTIONS: RunConventions = RunConventions {
 pub fn main() {
     let args = RailShell::parse();
 
-    let state = loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS);
+    let state = match loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS) {
+        Ok(state) => state,
+        Err((state, err)) => {
+            eprintln!("Error loading initial state: {:?}", err);
+            eprintln!("State dump: {}", state.stack);
+            std::process::exit(1);
+        }
+    };
 
-    match args.mode {
+    let end_state = match args.mode {
         Some(Mode::Interactive) | None => RailPrompt::new(&CONVENTIONS).run(state),
         Some(Mode::Run { file }) => {
             let tokens = loading::get_source_file_as_tokens(file);
-            state.run_tokens(tokens);
+            state.run_tokens(tokens)
         }
         Some(Mode::RunStdin) => unimplemented!("I don't know how to run stdin yet"),
+    };
+
+    let end_state = match end_state {
+        Ok(state) => state,
+        Err((state, err)) => {
+            eprintln!("Exiting with error: {:?}", err);
+            state
+        }
+    };
+
+    if !end_state.stack.is_empty() {
+        let end_state_msg = format!("State dump: {}", end_state.stack);
+        eprintln!("{}", end_state_msg.dimmed().red());
     }
 }
 

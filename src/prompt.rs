@@ -1,5 +1,5 @@
 use crate::loading;
-use crate::rail_machine::{self, RailState, RunConventions};
+use crate::rail_machine::{self, RailRunResult, RailState, RunConventions};
 use crate::tokens::Token;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
@@ -23,19 +23,17 @@ impl RailPrompt {
         }
     }
 
-    pub fn run(self, state: RailState) {
+    pub fn run(self, state: RailState) -> RailRunResult {
         let name_and_version = format!(
             "{} {}",
             self.conventions.exe_name, self.conventions.exe_version
         );
         eprintln!("{}", name_and_version.dimmed().red());
 
-        let end_state = self.fold(state, |state, term| state.run_tokens(term));
-
-        if !end_state.stack.is_empty() {
-            let end_state_msg = format!("State dump: {}", end_state.stack);
-            eprintln!("{}", end_state_msg.dimmed().red());
-        }
+        self.fold(Ok(state), |state, term| match state {
+            Ok(state) => state.run_tokens(term),
+            err => err,
+        })
     }
 }
 

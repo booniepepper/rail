@@ -1,7 +1,7 @@
 use std::{fmt::Debug, fs, path::Path};
 
 use crate::corelib::rail_builtin_dictionary;
-use crate::rail_machine::{RailState, RunConventions};
+use crate::rail_machine::{RailRunResult, RailState, RunConventions};
 use crate::tokens::{self, Token};
 use crate::{rail_lib_path, rail_machine};
 
@@ -33,12 +33,12 @@ pub fn initial_rail_state(
     skip_stdlib: bool,
     lib_list: Option<String>,
     rc: &'static RunConventions,
-) -> RailState {
+) -> RailRunResult {
     let definitions = rail_builtin_dictionary();
     let state = RailState::new_main(definitions, rc);
 
     let state = if skip_stdlib {
-        state
+        Ok(state)
     } else {
         let tokens = from_rail_stdlib(rc);
         state.run_tokens(tokens)
@@ -46,7 +46,7 @@ pub fn initial_rail_state(
 
     if let Some(lib_list) = lib_list {
         let tokens = from_lib_list(&lib_list, &RAIL_SOURCE_CONVENTIONS);
-        state.run_tokens(tokens)
+        state.and_then(|state| state.run_tokens(tokens))
     } else {
         state
     }

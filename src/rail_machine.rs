@@ -14,6 +14,13 @@ pub struct RunConventions<'a> {
     pub fatal_prefix: &'a str,
 }
 
+#[derive(Clone, Debug)]
+pub enum RailError {
+    UnknownCommand(String),
+}
+
+pub type RailRunResult = Result<RailState, (RailState, RailError)>;
+
 #[derive(Clone)]
 pub struct RailState {
     // TODO: Provide update functions and make these private
@@ -60,14 +67,14 @@ impl RailState {
         }
     }
 
-    pub fn run_tokens(self, tokens: Vec<Token>) -> RailState {
-        tokens
-            .iter()
-            .fold(self, |state, term| state.run_token(term.clone()))
+    pub fn run_tokens(self, tokens: Vec<Token>) -> RailRunResult {
+        tokens.iter().fold(Ok(self), |state, term| {
+            state.and_then(|state| state.run_token(term.clone()))
+        })
     }
 
-    pub fn run_token(self, token: Token) -> RailState {
-        match token {
+    pub fn run_token(self, token: Token) -> RailRunResult {
+        let res = match token {
             Token::None => self,
             Token::LeftBracket => self.deeper(),
             Token::RightBracket => self.higher(),
@@ -75,24 +82,20 @@ impl RailState {
             Token::I64(i) => self.push_i64(i),
             Token::F64(f) => self.push_f64(f),
             Token::DeferredTerm(term) => self.push_deferred_command(&term),
-            Token::Term(term) => {
-                match (self.clone().get_def(&term), self.in_main()) {
-                    (Some(op), true) => {
-                        let mut op = op;
-                        op.act(self)
-                    }
-                    (Some(op), false) => self.push_command(&op.name),
-                    (None, false) => self.push_command(&term),
-                    (None, true) => {
-                        // Unknown term executing in main.
-                        // TODO: Use a logging library? Log levels? Exit in a strict mode?
-                        // TODO: Have/get details on filename/source, line number, character number
-                        let term = term.replace('\n', "\\n");
-                        derail_for_unknown_command(&term, self.conventions);
-                    }
+            Token::Term(term) => match (self.clone().get_def(&term), self.in_main()) {
+                (Some(op), true) => {
+                    let mut op = op;
+                    op.act(self)
                 }
-            }
-        }
+                (Some(op), false) => self.push_command(&op.name),
+                (None, false) => self.push_command(&term),
+                (None, true) => {
+                    return Err((self, RailError::UnknownCommand(term.replace('\n', "\\n"))));
+                }
+            },
+        };
+
+        Ok(res)
     }
 
     pub fn run_val(&self, value: RailVal, local_state: RailState) -> RailState {

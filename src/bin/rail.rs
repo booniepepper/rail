@@ -1,4 +1,5 @@
 use clap::Parser;
+use colored::Colorize;
 use rail_lang::{loading, RunConventions, RAIL_FATAL_PREFIX, RAIL_VERSION, RAIL_WARNING_PREFIX};
 
 const EXE_NAME: &str = "rail";
@@ -13,10 +14,30 @@ const CONVENTIONS: RunConventions = RunConventions {
 pub fn main() {
     let args = RailEvaluator::parse();
 
-    let state = loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS);
+    let state = match loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONVENTIONS) {
+        Ok(state) => state,
+        Err((state, err)) => {
+            eprintln!("Error loading initial state: {:?}", err);
+            eprintln!("State dump: {}", state.stack);
+            std::process::exit(1);
+        }
+    };
 
     let tokens = loading::get_source_as_tokens(args.rail_code.join(" "));
-    state.run_tokens(tokens);
+
+    let end_state = match state.run_tokens(tokens) {
+        Ok(state) => state,
+        Err((state, err)) => {
+            let msg = format!("Exiting with error: {:?}", err);
+            eprintln!("{}", msg.dimmed().red());
+            state
+        }
+    };
+
+    if !end_state.stack.is_empty() {
+        let msg = format!("State dump: {}", end_state.stack);
+        eprintln!("{}", msg.dimmed().red());
+    }
 }
 
 #[derive(Parser)]

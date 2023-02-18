@@ -64,6 +64,8 @@ fn arrow_in_times() {
             n 2 *
         ] 7 times
 
+        drop
+
         [ n ] undef? "times must not leak definitions, but n was defined" assert-true
     "#;
 
@@ -173,6 +175,8 @@ fn shadowing_in_times() {
         [ 1 ] [ n ] def
 
         n [ [ n ] -> n println n 1 + ] 3 times
+
+        drop
 
         n println
     "#;

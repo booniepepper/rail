@@ -16,3 +16,5 @@ dup len 1 - [k] ->
 [[+] doin] k times
 
 pop println
+
+drop
