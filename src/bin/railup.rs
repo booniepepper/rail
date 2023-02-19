@@ -19,7 +19,7 @@ pub fn main() {
     let args = parse_args();
 
     match args.subcommand() {
-        Some(("bootstrap", _)) => {
+        Some(("bootstrap", _)) | None => {
             let path = rail_lib_path(&CONV);
             fs::create_dir_all(path.clone())
                 .unwrap_or_else(|e| panic!("Couldn't create {:?} : {}", path, e));
@@ -60,13 +60,12 @@ pub fn main() {
             log::error(&CONV, format!("Unknown command: {}", unknown_cmd));
             std::process::exit(1);
         }
-        None => (),
     }
 }
 
 fn parse_args() -> ArgMatches {
     // TODO: How can I do these in the derive style?
-    let bootstrap_help = format!("Fetch the Rail {} std library and extras", RAIL_VERSION);
+    let bootstrap_help = format!("Fetch the Rail {} std library and extras. This is the default behavior when no subcommand is provided", RAIL_VERSION);
     let zap_help = format!(
         "Destroy any cached Rail {} std library and extras",
         RAIL_VERSION
