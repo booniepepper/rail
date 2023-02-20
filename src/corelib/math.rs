@@ -53,35 +53,35 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             |a, b| a % b,
             |a, b| a % b,
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "int-max",
             "Produce the maximum integer value.",
             &[],
             &[I64],
             |quote| quote.push_i64(i64::MAX),
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "int-min",
             "Produce the minimum integer value.",
             &[],
             &[I64],
             |quote| quote.push_i64(i64::MIN),
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "float-max",
             "Produce the maximum floating-point value.",
             &[],
             &[F64],
             |quote| quote.push_f64(f64::MAX),
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "float-min",
             "Produce the minimum floating-point value.",
             &[],
             &[F64],
             |quote| quote.push_f64(f64::MIN),
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "digits",
             "Consume a number and produce a list of its decimal digits.",
             &[I64],
@@ -114,7 +114,7 @@ where
     F: Fn(f64) -> f64 + Sized + 'a,
     G: Fn(i64) -> i64 + Sized + 'a,
 {
-    RailDef::on_state(name, description, &[Number], &[Number], move |quote| {
+    RailDef::on_state_noerr(name, description, &[Number], &[Number], move |quote| {
         let (n, quote) = quote.pop();
         match n {
             RailVal::I64(n) => quote.push_i64(i64_op(n)),
@@ -134,7 +134,7 @@ fn unary_to_f64_op<'a, F>(name: &'a str, description: &'a str, f64_op: F) -> Rai
 where
     F: Fn(f64) -> f64 + Sized + 'a,
 {
-    RailDef::on_state(name, description, &[Number], &[F64], move |quote| {
+    RailDef::on_state_noerr(name, description, &[Number], &[F64], move |quote| {
         let (n, quote) = quote.pop();
         match n {
             RailVal::I64(n) => quote.push_f64(f64_op(n as f64)),
@@ -154,7 +154,7 @@ fn unary_to_i64_op<'a, F>(name: &'a str, description: &'a str, i64_op: F) -> Rai
 where
     F: Fn(i64) -> i64 + Sized + 'a,
 {
-    RailDef::on_state(name, description, &[Number], &[I64], move |quote| {
+    RailDef::on_state_noerr(name, description, &[Number], &[I64], move |quote| {
         let (n, quote) = quote.pop();
         match n {
             RailVal::I64(n) => quote.push_i64(i64_op(n)),
@@ -180,7 +180,7 @@ where
     F: Fn(f64, f64) -> f64 + Sized + 'a,
     G: Fn(i64, i64) -> i64 + Sized + 'a,
 {
-    RailDef::on_state(
+    RailDef::on_state_noerr(
         name,
         description,
         &[Number, Number],

@@ -1,6 +1,7 @@
 use crate::rail_machine::{RailDef, RailType};
 
 pub fn builtins() -> Vec<RailDef<'static>> {
+    // TODO: Redesign. Is this a symbol table?
     vec![RailDef::on_state(
         "opt",
         "Consumes a specially-formed quote of quotes. The quote of quotes is
@@ -22,7 +23,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 let (action, opts) = opts.pop_quote("opt");
                 options = opts;
 
-                state = condition.jailed_run_in_state(state);
+                state = condition.jailed_run_in_state(state)?;
                 let (success, quote) = state.stack.clone().pop_bool("opt");
                 state = state.replace_stack(quote);
 
@@ -31,7 +32,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 }
             }
 
-            state
+            Ok(state)
         },
     )]
 }

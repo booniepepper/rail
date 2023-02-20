@@ -5,21 +5,21 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state("true", "The boolean value true.", &[], &[Boolean],|state| state.push_bool(true)),
-        RailDef::on_state("false", "The boolean value false.", &[], &[Boolean],|state| state.push_bool(false)),
+        RailDef::on_state_noerr("true", "The boolean value true.", &[], &[Boolean],|state| state.push_bool(true)),
+        RailDef::on_state_noerr("false", "The boolean value false.", &[], &[Boolean],|state| state.push_bool(false)),
         RailDef::on_state("not", "Consumes one boolean value and produces its inverse.", &[Boolean], &[Boolean], |state| {
             let (b, state) = state.pop_bool("not");
-            state.push_bool(!b)
+            Ok(state.push_bool(!b))
         }),
         RailDef::on_state("or", "Consumes two boolean values. If either are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |state| {
             let (b2, state) = state.pop_bool("or");
             let (b1, state) = state.pop_bool("or");
-            state.push_bool(b1 || b2)
+            Ok(state.push_bool(b1 || b2))
         }),
         RailDef::on_state("and", "Consumes two boolean values. If both are true, produces true. Otherwise produces false.", &[Boolean, Boolean], &[Boolean], |state| {
             let (b2, state) = state.pop_bool("and");
             let (b1, state) = state.pop_bool("and");
-            state.push_bool(b1 && b2)
+            Ok(state.push_bool(b1 && b2))
         }),
         equality("eq?", "Consumes two values. If they're equal, produces true. Otherwise produces false.", Equality::Equal),
         equality("neq?", "Consumes two values. If they're not equal, produces true. Otherwise produces false.", Equality::NotEqual),
@@ -27,16 +27,18 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         binary_numeric_pred("lt?", "Consumes two numbers. If the top value is lesser, produces true. Otherwise produces false.", |a, b| b < a, |a, b| b < a),
         binary_numeric_pred("gte?", "Consumes two numbers. If the top value is greater or equal, produces true. Otherwise produces false.", |a, b| b >= a, |a, b| b >= a),
         binary_numeric_pred("lte?", "Consumes two numbers. If the top value is lesser or equal, produces true. Otherwise produces false.", |a, b| b <= a, |a, b| b <= a),
-        RailDef::on_state("any", "Consumes a sequence and a predicate. If the predicate applied to any value in the sequence is true, produces true. Otherwise produces false.", &[Quote, Quote], &[Quote], |state| {
+        RailDef::on_state_noerr("any", "Consumes a sequence and a predicate. If the predicate applied to any value in the sequence is true, produces true. Otherwise produces false.", &[Quote, Quote], &[Quote], |state| {
             let (predicate, state) = state.pop_quote("any");
             let (sequence, state) = state.pop_quote("any");
 
             for term in sequence.stack.values {
                 let substate = state.child().push(term);
                 let substate = predicate.clone().run_in_state(substate);
-                let (pass, _) = substate.stack.pop_bool("any");
-                if pass {
-                    return state.push_bool(true);
+                if let Ok(substate) = substate {
+                    let (pass, _) = substate.stack.pop_bool("any");
+                    if pass {
+                        return state.push_bool(true);
+                    }
                 }
             }
 
@@ -51,7 +53,7 @@ enum Equality {
 }
 
 fn equality<'a>(name: &'a str, description: &'a str, eq: Equality) -> RailDef<'a> {
-    RailDef::on_state(name, description, &[A, A], &[Boolean], move |quote| {
+    RailDef::on_state_noerr(name, description, &[A, A], &[Boolean], move |quote| {
         let (b, quote) = quote.pop();
         let (a, quote) = quote.pop();
 
@@ -76,7 +78,7 @@ where
     F: Fn(f64, f64) -> bool + Sized + 'a,
     G: Fn(i64, i64) -> bool + Sized + 'a,
 {
-    RailDef::on_state(
+    RailDef::on_state_noerr(
         name,
         description,
         &[Number, Number],

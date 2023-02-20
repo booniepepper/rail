@@ -1,6 +1,6 @@
 use crate::{
     log,
-    rail_machine::{RailDef, RailState, RailType, RailVal},
+    rail_machine::{RailDef, RailRunResult, RailState, RailType, RailVal},
 };
 
 use RailType::*;
@@ -27,7 +27,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             &[Unknown],
             doin(),
         ),
-        RailDef::on_state("def!", &format!("{} {}", "Consumes one quote and a quoted command or string. The latter quoted command or string becomes a command that executes the first quote.", DEFINITIONS_PRESERVED), &[Quote, QuoteOrCommand], &[], |state| {
+        RailDef::on_state_noerr("def!", &format!("{} {}", "Consumes one quote and a quoted command or string. The latter quoted command or string becomes a command that executes the first quote.", DEFINITIONS_PRESERVED), &[Quote, QuoteOrCommand], &[], |state| {
             let conventions = state.conventions;
             state.update_stack_and_defs(|quote, definitions| {
                 let mut definitions = definitions;
@@ -55,7 +55,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 (quote, definitions)
             })
         }),
-        RailDef::on_state("alias", &format!("Consumes two commands, and binds the latter to the former. {}", DEFINITIONS_PRESERVED), &[QuoteOrCommand], &[], |state| {
+        RailDef::on_state_noerr("alias", &format!("Consumes two commands, and binds the latter to the former. {}", DEFINITIONS_PRESERVED), &[QuoteOrCommand], &[], |state| {
             let conventions = state.conventions;
             state.update_stack_and_defs(|stack, mut definitions| {
                 let (new_name, stack) = stack.pop();
@@ -80,7 +80,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 (stack, definitions)
             })
         }),
-        RailDef::on_state("=>", "Consumes a variable number of values, and binds them as one or more commands. Quotes are not expanded.", &[Unknown, QuoteOrCommand], &[], |state| {
+        RailDef::on_state_noerr("=>", "Consumes a variable number of values, and binds them as one or more commands. Quotes are not expanded.", &[Unknown, QuoteOrCommand], &[], |state| {
             let child = state.child();
             state.update_stack_and_defs(|stack, mut definitions| {
                 let (commands, stack) = stack.pop();
@@ -106,7 +106,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 (stack, definitions)
             })
         }),
-        RailDef::on_state("->", "Consumes a variable number of values, and binds them as one or more commands.", &[Unknown, QuoteOrCommand], &[], |state| {
+        RailDef::on_state_noerr("->", "Consumes a variable number of values, and binds them as one or more commands.", &[Unknown, QuoteOrCommand], &[], |state| {
             let child = state.child();
             state.update_stack_and_defs(|stack, mut definitions| {
                 let (commands, stack) = stack.pop();
@@ -132,7 +132,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 (stack, definitions)
             })
         }),
-        RailDef::on_state("def?", "Consumes a quote or command, and produces true when it is defined, and false otherwise.", &[QuoteOrCommand], &[Boolean], |state| {
+        RailDef::on_state_noerr("def?", "Consumes a quote or command, and produces true when it is defined, and false otherwise.", &[QuoteOrCommand], &[Boolean], |state| {
             let (name, state) = state.pop();
             let name = if let Some(name) = get_command_name(&name) {
                 name
@@ -146,7 +146,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             let is_def = state.definitions.contains_key(&name);
             state.push_bool(is_def)
         }),
-        RailDef::on_state("describe", "Consumes a quoted command or command, and produces its description as a string.", &[QuoteOrCommand], &[String], |state| {
+        RailDef::on_state_noerr("describe", "Consumes a quoted command or command, and produces its description as a string.", &[QuoteOrCommand], &[String], |state| {
             let (name, state) = state.pop();
             let name = if let Some(name) = get_command_name(&name) {
                 name
@@ -167,7 +167,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
     ]
 }
 
-fn do_it() -> impl Fn(RailState) -> RailState {
+fn do_it() -> impl Fn(RailState) -> RailRunResult {
     |state| {
         let (command, state) = state.pop();
 
@@ -182,13 +182,13 @@ fn do_it() -> impl Fn(RailState) -> RailState {
                     state.conventions,
                     format!("{} is not a quote or command", command),
                 );
-                state
+                Ok(state)
             }
         }
     }
 }
 
-fn doin() -> impl Fn(RailState) -> RailState {
+fn doin() -> impl Fn(RailState) -> RailRunResult {
     |state| {
         let (commands, state) = state.pop();
         let commands = match &commands {
@@ -211,7 +211,7 @@ fn doin() -> impl Fn(RailState) -> RailState {
         let substate = state.child().replace_stack(targets.stack);
         let substate = commands.run_in_state(substate);
 
-        state.push_quote(substate)
+        substate.map(|substate| state.push_quote(substate))
     }
 }
 

@@ -15,9 +15,40 @@ pub struct RunConventions<'a> {
     pub fatal_prefix: &'a str,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum RailError {
     UnknownCommand(String),
+    StackUnderflow(RailState, String, Vec<RailType>),
+    TypeMismatch(Vec<RailType>, Vec<RailVal>),
+    CantEscape(Context),
+}
+
+impl std::fmt::Debug for RailError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::CantEscape(ctx) => write!(
+                f,
+                "Can't escape {}. This usually means there are too many closing brackets.",
+                match ctx {
+                    Context::Main => "main context",
+                    Context::None => "contextless scope",
+                    Context::Quotation { parent_state: _ } => "quotation",
+                }
+            ),
+            Self::StackUnderflow(state, name, consumes) => write!(
+                f,
+                "Stack underflow. Stack had {} elements, but {} wanted {}",
+                state.len(),
+                name,
+                consumes.len()
+            ),
+            Self::TypeMismatch(types, values) => {
+                let values: Vec<RailType> = values.iter().map(|v| v.get_type()).collect();
+                write!(f, "Type mismatch. Wanted {:?} but had {:?}", types, values)
+            }
+            Self::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
+        }
+    }
 }
 
 pub type RailRunResult = Result<RailState, (RailState, RailError)>;
@@ -78,15 +109,14 @@ impl RailState {
         let res = match token {
             Token::None => self,
             Token::LeftBracket => self.deeper(),
-            Token::RightBracket => self.higher(),
+            Token::RightBracket => return self.higher(),
             Token::String(s) => self.push_string(s),
             Token::I64(i) => self.push_i64(i),
             Token::F64(f) => self.push_f64(f),
             Token::DeferredTerm(term) => self.push_deferred_command(&term),
             Token::Term(term) => match (self.clone().get_def(&term), self.in_main()) {
                 (Some(op), true) => {
-                    let mut op = op;
-                    op.act(self)
+                    return op.act(self);
                 }
                 (Some(op), false) => self.push_command(&op.name),
                 (None, false) => self.push_command(&term),
@@ -99,29 +129,36 @@ impl RailState {
         Ok(res)
     }
 
-    pub fn run_val(&self, value: RailVal, local_state: RailState) -> RailState {
+    pub fn run_val(self, value: RailVal, local_state: RailState) -> RailRunResult {
         match value {
             RailVal::Command(name) => {
-                let mut cmd = self
-                    .get_def(&name)
-                    .or_else(|| local_state.get_def(&name))
-                    .unwrap_or_else(|| derail_for_unknown_command(&name, self.conventions));
-                cmd.act(self.clone())
+                let state = self.clone();
+                let cmd = state.get_def(&name).or_else(|| local_state.get_def(&name));
+
+                match cmd {
+                    None => Err((self, RailError::UnknownCommand(name))),
+                    Some(cmd) => cmd.act(self),
+                }
             }
-            value => self.clone().push(value),
+            value => Ok(self.push(value)),
         }
     }
 
-    pub fn run_in_state(self, other_state: RailState) -> RailState {
+    pub fn run_in_state(self, other_state: RailState) -> RailRunResult {
         let values = self.stack.clone().values;
-        values.into_iter().fold(other_state, |state, value| {
-            state.run_val(value, self.child())
-        })
+        values
+            .into_iter()
+            .fold(Ok(other_state), |state, value| match state {
+                Ok(state) => state.run_val(value, self.child()),
+                err => err,
+            })
     }
 
-    pub fn jailed_run_in_state(self, other_state: RailState) -> RailState {
-        let after_run = self.run_in_state(other_state.clone());
-        other_state.replace_stack(after_run.stack)
+    pub fn jailed_run_in_state(self, other_state: RailState) -> RailRunResult {
+        let jailed = |state: RailState| other_state.clone().replace_stack(state.stack);
+        self.run_in_state(other_state.clone())
+            .map(jailed)
+            .map_err(|(state, e)| (jailed(state), e))
     }
 
     pub fn update_stack(self, update: impl Fn(Stack) -> Stack) -> RailState {
@@ -173,7 +210,7 @@ impl RailState {
         }
     }
 
-    pub fn deeper(self) -> RailState {
+    pub fn deeper(self) -> Self {
         let conventions = self.conventions;
         RailState {
             stack: Stack::default(),
@@ -185,14 +222,11 @@ impl RailState {
         }
     }
 
-    pub fn higher(self) -> RailState {
-        let parent_state = match self.context.clone() {
-            Context::Quotation { parent_state } => *parent_state,
-            Context::Main => panic!("Can't escape main"),
-            Context::None => panic!("Can't escape"),
-        };
-
-        parent_state.push_quote(self)
+    pub fn higher(self) -> RailRunResult {
+        match self.context.clone() {
+            Context::Quotation { parent_state } => Ok(parent_state.push_quote(self)),
+            context => Err((self, RailError::CantEscape(context))),
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -346,6 +380,7 @@ pub enum Context {
     None,
 }
 
+#[derive(Clone, Debug)]
 pub enum RailType {
     A,
     B,
@@ -674,7 +709,8 @@ pub struct RailDef<'a> {
 
 #[derive(Clone)]
 pub enum RailAction<'a> {
-    Builtin(Arc<dyn Fn(RailState) -> RailState + 'a>),
+    Builtin(Arc<dyn Fn(RailState) -> RailRunResult + 'a>),
+    BuiltinSafe(Arc<dyn Fn(RailState) -> RailState + 'a>),
     Quotation(RailState),
 }
 
@@ -687,7 +723,7 @@ impl<'a> RailDef<'a> {
         state_action: F,
     ) -> RailDef<'a>
     where
-        F: Fn(RailState) -> RailState + 'a,
+        F: Fn(RailState) -> RailRunResult + 'a,
     {
         RailDef {
             name: name.to_string(),
@@ -698,7 +734,8 @@ impl<'a> RailDef<'a> {
         }
     }
 
-    pub fn on_jailed_state<F>(
+    // TODO: Make this fn stop existing, or at least being so widely used. Like `on_state` but does not return RailRunResult type.
+    pub fn on_state_noerr<F>(
         name: &str,
         description: &str,
         consumes: &'a [RailType],
@@ -713,10 +750,29 @@ impl<'a> RailDef<'a> {
             description: description.to_string(),
             consumes,
             produces,
+            action: RailAction::BuiltinSafe(Arc::new(state_action)),
+        }
+    }
+
+    pub fn on_jailed_state<F>(
+        name: &str,
+        description: &str,
+        consumes: &'a [RailType],
+        produces: &'a [RailType],
+        state_action: F,
+    ) -> RailDef<'a>
+    where
+        F: Fn(RailState) -> RailRunResult + 'a,
+    {
+        RailDef {
+            name: name.to_string(),
+            description: description.to_string(),
+            consumes,
+            produces,
             action: RailAction::Builtin(Arc::new(move |state| {
                 let definitions = state.definitions.clone();
-                let substate = state_action(state);
-                substate.replace_definitions(definitions)
+                let substate = state_action(state)?;
+                Ok(substate.replace_definitions(definitions))
             })),
         }
     }
@@ -733,7 +789,7 @@ impl<'a> RailDef<'a> {
     {
         RailDef::on_state(name, description, consumes, produces, move |state| {
             contextless_action();
-            state
+            Ok(state)
         })
     }
 
@@ -748,27 +804,21 @@ impl<'a> RailDef<'a> {
         }
     }
 
-    pub fn act(&mut self, state: RailState) -> RailState {
+    pub fn act(self, state: RailState) -> RailRunResult {
         if state.stack.len() < self.consumes.len() {
             // TODO: At some point will want source context here like line/column number.
-            log::warn(
-                state.conventions,
-                format!(
-                    "Underflow for \"{}\" (takes: {}, gives: {}). State: {}",
-                    self.name,
-                    self.display_consumes(),
-                    self.display_produces(),
-                    state.stack
-                ),
-            );
-            return state;
+            return Err((
+                state.clone(),
+                RailError::StackUnderflow(state, self.name, self.consumes.to_vec()),
+            ));
         }
 
         // TODO: Type checks?
 
-        match &self.action {
+        match self.action {
             RailAction::Builtin(action) => action(state),
-            RailAction::Quotation(quote) => quote.clone().run_in_state(state),
+            RailAction::BuiltinSafe(action) => Ok(action(state)),
+            RailAction::Quotation(quote) => quote.run_in_state(state),
         }
     }
 
@@ -797,28 +847,4 @@ impl<'a> RailDef<'a> {
             action: self.action,
         }
     }
-
-    fn display_consumes(&self) -> String {
-        self.consumes
-            .iter()
-            .map(|t| t.to_string())
-            .collect::<Vec<_>>()
-            .join(" ")
-    }
-
-    fn display_produces(&self) -> String {
-        self.produces
-            .iter()
-            .map(|t| t.to_string())
-            .collect::<Vec<_>>()
-            .join(" ")
-    }
-}
-
-// The following are all handling for errors, warnings, and panics.
-// TODO: Update places these are referenced to return Result.
-
-pub fn derail_for_unknown_command(name: &str, conv: &RunConventions) -> ! {
-    log::fatal(conv, format!("Unknown command '{}'", name));
-    std::process::exit(1)
 }

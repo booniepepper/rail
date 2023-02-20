@@ -16,7 +16,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
         RailDef::contextless("nl", "Prints a newline.", &[], &[], || {
             print_or_die(|out| out.write(b"\n"))
         }),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "status",
             "Prints the current status of the program.",
             &[],
@@ -40,7 +40,7 @@ fn printer<'a, P>(name: &str, description: &str, p: &'a P) -> RailDef<'a>
 where
     P: Fn(&dyn Display) + 'a,
 {
-    RailDef::on_state(name, description, &[RailType::A], &[], move |quote| {
+    RailDef::on_state_noerr(name, description, &[RailType::A], &[], move |quote| {
         let (a, quote) = quote.pop();
         match a {
             RailVal::String(a) => p(&a),

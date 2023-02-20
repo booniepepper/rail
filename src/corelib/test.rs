@@ -19,7 +19,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 std::process::exit(1);
             }
 
-            quote
+            Ok(quote)
         },
     )]
 }

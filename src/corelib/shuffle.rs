@@ -4,14 +4,14 @@ use RailType::{A, B, C};
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "drop",
             "Consume one value and discard it.",
             &[A],
             &[],
             |quote| quote.pop().1,
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "dup",
             "Consume one value and produce it two times.",
             &[A],
@@ -21,7 +21,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 quote.push(a.clone()).push(a)
             },
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "dup2",
             "Consume two values, and produce them two times.",
             &[A, B],
@@ -32,7 +32,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 quote.push(a.clone()).push(b.clone()).push(a).push(b)
             },
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "swap",
             "Consume two values, and produce them in reverse order.",
             &[A, B],
@@ -43,7 +43,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 quote.push(a).push(b)
             },
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "rot",
             "Consume three values, and produce them rotated once.",
             &[A, B, C],

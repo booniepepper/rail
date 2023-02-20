@@ -7,7 +7,7 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "type",
             "Consume a value and produce the name (a string) of its type.",
             &[A],
@@ -17,7 +17,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 quote.push_string(thing.type_name())
             },
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "defs",
             "Produce a list of all defined commands in the current context.",
             &[],
@@ -34,7 +34,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
             },
         ),
         // TODO: In typing, consumes of 'quote-all' should be something that means 0-to-many
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "quote-all",
             "Go \"up\" a context, leaving the program's previous state as a quotation.",
             &[],
@@ -47,7 +47,7 @@ pub fn builtins() -> Vec<RailDef<'static>> {
                 wrapper.push_quote(quote)
             },
         ),
-        RailDef::on_state(
+        RailDef::on_state_noerr(
             "version",
             "Produces the version of Rail currently in use.",
             &[],
