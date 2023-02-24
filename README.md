@@ -8,8 +8,8 @@
 A straightforward programming language.
 
 Rail is an experimental [concatenative](https://concatenative.org/wiki/view/Concatenative%20language)
-programming language and virtual machine. It is under wild development and zero
-stability between versions is guaranteed.
+virtual machine and minimal programming language. It is under wild development,
+and currently zero stability between versions is guaranteed.
 
 See also: The [`dt`](https://github.com/hiljusti/dt) language that uses Rail as
 a virtual machine.
