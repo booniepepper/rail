@@ -32,13 +32,9 @@ impl RailPrompt {
         );
 
         self.fold(Ok(state), |state, term| {
-            match state.unwrap_or_else(|_| unreachable!()).run_tokens(term) {
-                Err((state, err)) => {
-                    log::error(state.conventions, format!("{:?}", err));
-                    Ok(state)
-                }
-                ok => ok,
-            }
+            let result = state.unwrap_or_else(|_| unreachable!()).run_tokens(term);
+            let result = log::error_coerce(result);
+            Ok(result)
         })
     }
 }

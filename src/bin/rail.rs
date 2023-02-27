@@ -21,21 +21,20 @@ pub fn main() {
     let state = match loading::initial_rail_state(args.no_stdlib, args.lib_list, &CONV) {
         Ok(state) => state,
         Err((state, err)) => {
-            log::error(&CONV, format!("Error loading initial state: {:?}", err));
-            log::error(&CONV, format!("State dump: {}", state.stack));
+            log::fatal(
+                &CONV,
+                format!(
+                    "Error loading initial state: {:?}\nState dump: {}",
+                    err, state.stack
+                ),
+            );
             std::process::exit(1);
         }
     };
 
     let tokens = loading::get_source_as_tokens(args.rail_code.join(" "));
 
-    let end_state = match state.run_tokens(tokens) {
-        Ok(state) => state,
-        Err((state, err)) => {
-            log::error(&CONV, format!("Exiting with error: {:?}", err));
-            state
-        }
-    };
+    let end_state = log::error_coerce(state.run_tokens(tokens));
 
     if !end_state.stack.is_empty() {
         log::error(&CONV, format!("State dump: {}", end_state.stack));

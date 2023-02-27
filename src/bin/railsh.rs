@@ -40,13 +40,7 @@ pub fn main() {
         }
     };
 
-    let end_state = match end_state {
-        Ok(state) => state,
-        Err((state, err)) => {
-            log::error(&CONV, format!("Exiting with error: {:?}", err));
-            state
-        }
-    };
+    let end_state = log::error_coerce(end_state);
 
     if !end_state.stack.is_empty() {
         log::error(&CONV, format!("State dump: {}", end_state.stack));
