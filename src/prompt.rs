@@ -2,17 +2,20 @@ use crate::rail_machine::{RailRunResult, RailState, RunConventions};
 use crate::tokens::Token;
 use crate::{loading, log};
 use rustyline::error::ReadlineError;
+use rustyline::history::FileHistory;
 use rustyline::Editor;
+
+type RailRustylineEditor = Editor<(), FileHistory>;
 
 pub struct RailPrompt {
     is_tty: bool,
-    editor: Editor<()>,
+    editor: RailRustylineEditor,
     conventions: &'static RunConventions<'static>,
 }
 
 impl RailPrompt {
     pub fn new(conventions: &'static RunConventions) -> RailPrompt {
-        let mut editor = Editor::<()>::new().expect("Unable to boot editor");
+        let mut editor = RailRustylineEditor::new().expect("Unable to boot editor");
         let is_tty = editor.dimensions().is_some();
 
         RailPrompt {
@@ -68,7 +71,10 @@ impl Iterator for RailPrompt {
 
         let input = input.unwrap();
 
-        self.editor.add_history_entry(&input);
+        self.editor.add_history_entry(&input).unwrap_or_else(|err| {
+            eprintln!("Unable to save command line history: {:?}", err);
+            false
+        });
 
         Some(loading::get_source_as_tokens(input))
     }
