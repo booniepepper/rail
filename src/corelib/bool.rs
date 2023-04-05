@@ -5,8 +5,6 @@ use RailType::*;
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![
-        RailDef::on_state_noerr("true", "The boolean value true.", &[], &[Boolean],|state| state.push_bool(true)),
-        RailDef::on_state_noerr("false", "The boolean value false.", &[], &[Boolean],|state| state.push_bool(false)),
         RailDef::on_state("not", "Consumes one boolean value and produces its inverse.", &[Boolean], &[Boolean], |state| {
             let (b, state) = state.pop_bool("not");
             Ok(state.push_bool(!b))

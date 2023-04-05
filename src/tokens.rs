@@ -4,6 +4,7 @@ use regex::Regex;
 pub enum Token {
     LeftBracket,
     RightBracket,
+    Boolean(bool),
     I64(i64),
     F64(f64),
     Term(std::string::String),
@@ -20,6 +21,10 @@ impl From<std::string::String> for Token {
             LeftBracket
         } else if &tok == "]" {
             RightBracket
+        } else if &tok == "true" {
+            Boolean(true)
+        } else if &tok == "false" {
+            Boolean(false)
         } else if &tok != "\"" && tok.starts_with('"') && tok.ends_with('"') {
             let s = tok
                 .strip_prefix('"')

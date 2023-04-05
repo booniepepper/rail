@@ -111,6 +111,7 @@ impl RailState {
             Token::LeftBracket => self.deeper(),
             Token::RightBracket => return self.higher(),
             Token::String(s) => self.push_string(s),
+            Token::Boolean(b) => self.push_bool(b),
             Token::I64(i) => self.push_i64(i),
             Token::F64(f) => self.push_f64(f),
             Token::DeferredTerm(term) => self.push_deferred_command(&term),
