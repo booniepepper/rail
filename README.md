@@ -16,17 +16,17 @@ a virtual machine.
 
 ```
 $ railsh
-rail 0.28.0
+rail 0.29.0
 
 > 1 1 + print
 2
 
-> [ [ n ] -> n print " " print n 2 * ] "print-and-double" def
+> [[n] -> n print " " print n 2 *] "print-and-double" def
 
-> 1 [ print-and-double ] 7 times
+> 1 [print-and-double] 7 times
 1 2 4 8 16 32 64 
 
-> [ [ false ] [ "bye" ] [ true ] [ "hi" ] ] opt println
+> [[false] ["bye"] [true] ["hi"]] ? println
 hi
 ```
 
