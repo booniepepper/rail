@@ -111,3 +111,13 @@ way makes most sense for the program under compilation, and consider this an
 area for heavy optimization.
 
 This also suggests [no dynamic execution in compiled mode](#no-dynamic-execution-in-compiled-mode)._
+
+## In-lining
+
+Ahead-of-time compiling and also Just-in-time compiling can choose to layout code how it likes.
+
+For consideration: https://ratfactor.com/meow5/
+
+> It’s unique feature is its "inline all the things!" compiling method. A Meow5 function is the recursively concatenated machine code of every function it calls.
+
+A departure from Forth's pragmatic call/ret REPL approach
