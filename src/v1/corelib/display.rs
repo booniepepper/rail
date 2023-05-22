@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::io::{self, Stdout, Write};
 
-use crate::rail_machine::{RailDef, RailType, RailVal};
+use crate::v1::rail_machine::{RailDef, RailType, RailVal};
 
 pub fn builtins() -> Vec<RailDef<'static>> {
     vec![

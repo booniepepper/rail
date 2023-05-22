@@ -1,10 +1,11 @@
 use std::{env, fs, io, process};
 
 use clap::{ArgMatches, Command};
-use rail_lang::{
+use rail_lang::v1::{
     log, rail_lib_path, RunConventions, RAIL_ERROR_PREFIX, RAIL_FATAL_PREFIX, RAIL_INFO_PREFIX,
-    RAIL_VERSION, RAIL_WARN_PREFIX,
+    RAIL_WARN_PREFIX,
 };
+use rail_lang::RAIL_VERSION;
 
 const CONV: RunConventions = RunConventions {
     exe_name: "railup",

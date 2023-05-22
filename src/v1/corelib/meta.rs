@@ -1,4 +1,4 @@
-use crate::{
+use crate::v1::{
     rail_machine::{Context, RailDef, RailType},
     RAIL_VERSION,
 };

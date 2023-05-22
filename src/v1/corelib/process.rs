@@ -1,6 +1,6 @@
 use std::env;
 
-use crate::rail_machine::{self, RailDef, RailType, RailVal};
+use crate::v1::rail_machine::{self, RailDef, RailType, RailVal};
 
 use RailType::*;
 

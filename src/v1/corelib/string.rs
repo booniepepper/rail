@@ -1,4 +1,4 @@
-use crate::rail_machine::{RailDef, RailType, Stack};
+use crate::v1::rail_machine::{RailDef, RailType, Stack};
 
 use RailType::*;
 

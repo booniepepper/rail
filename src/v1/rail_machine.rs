@@ -2,8 +2,8 @@ use im::{HashMap, Vector};
 use std::fmt::Display;
 use std::sync::Arc;
 
-use crate::log;
 use crate::tokens::Token;
+use crate::v1::log;
 
 #[derive(Clone)]
 pub struct RunConventions<'a> {

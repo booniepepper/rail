@@ -1,5 +1,5 @@
-use crate::log;
-use crate::rail_machine::{RailDef, RailType};
+use crate::v1::log;
+use crate::v1::rail_machine::{RailDef, RailType};
 
 use RailType::*;
 

@@ -1,4 +1,4 @@
-use crate::rail_machine::{self, RailDef, RailType};
+use crate::v1::rail_machine::{self, RailDef, RailType};
 
 use RailType::*;
 

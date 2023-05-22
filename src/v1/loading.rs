@@ -1,10 +1,10 @@
 use std::{fmt::Debug, fs, path::Path};
 
-use crate::corelib::rail_builtin_dictionary;
-use crate::log;
-use crate::rail_lib_path;
-use crate::rail_machine::{RailRunResult, RailState, RunConventions};
 use crate::tokens::{self, Token};
+use crate::v1::corelib::rail_builtin_dictionary;
+use crate::v1::log;
+use crate::v1::rail_lib_path;
+use crate::v1::rail_machine::{RailRunResult, RailState, RunConventions};
 
 pub struct SourceConventions<'a> {
     pub lib_exts: &'a [&'a str],
@@ -46,7 +46,7 @@ pub fn initial_rail_state(
     };
 
     if let Some(lib_list) = lib_list {
-        let tokens = from_lib_list(&lib_list, &RAIL_SOURCE_CONVENTIONS);
+        let tokens = from_lib_list(lib_list, &RAIL_SOURCE_CONVENTIONS);
         state.and_then(|state| state.run_tokens(tokens))
     } else {
         state

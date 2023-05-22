@@ -1,4 +1,4 @@
-use crate::rail_machine::{self, Dictionary};
+use crate::v1::rail_machine::{self, Dictionary};
 
 mod bool;
 mod choice;

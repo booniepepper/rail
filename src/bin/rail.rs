@@ -1,8 +1,9 @@
 use clap::Parser;
-use rail_lang::{
+use rail_lang::v1::{
     loading, log, RunConventions, RAIL_ERROR_PREFIX, RAIL_FATAL_PREFIX, RAIL_INFO_PREFIX,
-    RAIL_VERSION, RAIL_WARN_PREFIX,
+    RAIL_WARN_PREFIX,
 };
+use rail_lang::RAIL_VERSION;
 
 const EXE_NAME: &str = "rail";
 

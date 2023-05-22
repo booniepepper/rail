@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-use crate::rail_machine::{RailDef, RailType};
+use crate::v1::rail_machine::{RailDef, RailType};
 
 use RailType::*;
 
