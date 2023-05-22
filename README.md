@@ -16,7 +16,7 @@ a virtual machine.
 
 ```
 $ railsh
-rail 0.29.0
+rail 0.30.0
 
 > 1 1 + print
 2
