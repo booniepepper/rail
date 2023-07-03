@@ -53,7 +53,7 @@ impl From<std::string::String> for Token {
 pub fn tokenize(line: &str) -> Vec<Token> {
     // TODO: Validate that a line does not contain unterminated strings.
     // TODO: Handle character escapes for quotes, newlines, etc. (But here?)
-    let re: Regex = Regex::new(r#"(\[|\]|".*?"|[^\s\[\]]*)"#).unwrap();
+    let re: Regex = Regex::new(r#"(".*?"|\[|\]|[^\s\[\]]*)"#).unwrap();
     let line = line.replace('\n', " ");
     re.captures_iter(&line)
         .flat_map(|cap| cap.iter().take(1).collect::<Vec<_>>())
