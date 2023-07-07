@@ -16,7 +16,7 @@ with a similar syntax.
 
 ```
 $ railsh
-rail 0.30.1
+rail 0.30.2
 
 > 1 1 + print
 2
