@@ -1,7 +1,7 @@
 
-![License](https://img.shields.io/github/license/hiljusti/rail)
-![Lines of code](https://img.shields.io/tokei/lines/github/hiljusti/rail)
-![GitHub repo size](https://img.shields.io/github/repo-size/hiljusti/rail)
+![License](https://img.shields.io/github/license/booniepepper/rail)
+![Lines of code](https://img.shields.io/tokei/lines/github/booniepepper/rail)
+![GitHub repo size](https://img.shields.io/github/repo-size/booniepepper/rail)
 
 # Rail
 
@@ -11,8 +11,8 @@ Rail is an experimental [concatenative](https://concatenative.org/wiki/view/Conc
 virtual machine and minimal programming language. It is under wild development,
 and currently zero stability between versions is guaranteed.
 
-See also: The [`dt`](https://github.com/hiljusti/dt) language that uses Rail as
-a virtual machine.
+See also: [`dt`](https://github.com/booniepepper/dt) which is a looser language
+with a similar syntax.
 
 ```
 $ railsh
@@ -41,4 +41,4 @@ $ railup bootstrap
 
 Available under GPL v2.
 
-A side quest of J.R. Hill | https://so.dang.cool | https://github.com/hiljusti
+A side quest of J.R. Hill | https://so.dang.cool | https://github.com/booniepepper

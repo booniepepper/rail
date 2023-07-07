@@ -1,13 +1,13 @@
 [package]
 name = "rail-lang"
 version = "0.30.1"
-authors = ["J.R. Hill <hiljusti@so.dang.cool>"]
+authors = ["J.R. Hill <justin@so.dang.cool>"]
 description = "A straightforward programming language. Rail is currently experimental and subject to drastic breaking changes."
 license = "GPL-2.0-only"
 
 readme = "README.md"
-homepage = "https://github.com/hiljusti/rail"
-repository = "https://github.com/hiljusti/rail"
+homepage = "https://github.com/booniepepper/rail"
+repository = "https://github.com/booniepepper/rail"
 #documentation = "TODO"
 keywords = ["programming-language", "concatenative", "interpreter", "parser"]
 categories = []

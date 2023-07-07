@@ -33,7 +33,7 @@ pub fn main() {
                     "--single-branch",
                     "--branch",
                     &version_tag,
-                    "https://github.com/hiljusti/rail",
+                    "https://github.com/booniepepper/rail",
                     &path.to_string_lossy(),
                 ])
                 .output()
