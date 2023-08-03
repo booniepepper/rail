@@ -121,3 +121,8 @@ For consideration: https://ratfactor.com/meow5/
 > It’s unique feature is its "inline all the things!" compiling method. A Meow5 function is the recursively concatenated machine code of every function it calls.
 
 A departure from Forth's pragmatic call/ret REPL approach
+
+## Other talks/resources
+
+* [Programming Language Ideas that Work and Don't Work](https://www.youtube.com/watch?v=y7KWGv_t-MU), Walter Bright (D lang)
+
